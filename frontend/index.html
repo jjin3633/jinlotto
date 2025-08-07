@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎰 로또 번호 추천 서비스</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-dice"></i> 로또 번호 추천 서비스</h1>
+                <p>데이터 기반 분석으로 추천하는 로또 번호</p>
+            </div>
+        </header>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+            <!-- 서비스 상태 -->
+            <div class="status-card">
+                <h3><i class="fas fa-heartbeat"></i> 서비스 상태</h3>
+                <div id="service-status" class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text">확인 중...</span>
+                </div>
+            </div>
+
+            <!-- 번호 추천 섹션 -->
+            <div class="prediction-section">
+                <h2><i class="fas fa-magic"></i> 번호 추천</h2>
+                <div class="prediction-controls">
+                    <button id="predict-btn" class="btn btn-primary">
+                        <i class="fas fa-dice"></i> 번호 추천하기
+                    </button>
+                    <div class="prediction-options">
+                        <label>
+                            <input type="radio" name="method" value="statistical" checked>
+                            통계적 분석
+                        </label>
+                        <label>
+                            <input type="radio" name="method" value="ml">
+                            머신러닝
+                        </label>
+                        <label>
+                            <input type="radio" name="method" value="hybrid">
+                            하이브리드
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 추천 결과 -->
+                <div id="prediction-results" class="prediction-results" style="display: none;">
+                    <h3>🎯 추천 번호 세트</h3>
+                    <div id="number-sets" class="number-sets"></div>
+                    <div id="prediction-reasoning" class="reasoning"></div>
+                </div>
+            </div>
+
+            <!-- 분석 결과 섹션 -->
+            <div class="analysis-section">
+                <h2><i class="fas fa-chart-bar"></i> 분석 결과</h2>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h4><i class="fas fa-fire"></i> 핫 번호</h4>
+                        <div id="hot-numbers" class="number-list"></div>
+                    </div>
+                    <div class="analysis-card">
+                        <h4><i class="fas fa-snowflake"></i> 콜드 번호</h4>
+                        <div id="cold-numbers" class="number-list"></div>
+                    </div>
+                    <div class="analysis-card">
+                        <h4><i class="fas fa-chart-pie"></i> 홀짝 비율</h4>
+                        <div id="odd-even-ratio" class="ratio-display"></div>
+                    </div>
+                    <div class="analysis-card">
+                        <h4><i class="fas fa-calendar-alt"></i> 계절별 분석</h4>
+                        <div id="seasonal-analysis" class="seasonal-display"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 고지사항 -->
+            <div class="disclaimer-section">
+                <h3><i class="fas fa-exclamation-triangle"></i> 중요 고지사항</h3>
+                <div class="disclaimer-content">
+                    <p>본 서비스는 로또 번호 예측을 위한 참고 도구입니다.</p>
+                    <p>예측 결과는 실제 당첨을 보장하지 않습니다.</p>
+                    <p>로또는 완전한 확률 게임이며, 과학적 예측이 불가능합니다.</p>
+                    <p>건전한 복권 이용을 권장하며, 과도한 구매를 자제해 주세요.</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- 로딩 오버레이 -->
+        <div id="loading-overlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>분석 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
