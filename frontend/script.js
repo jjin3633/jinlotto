@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 예측 처리
 async function handlePrediction() {
-    const method = document.querySelector('input[name="method"]:checked').value;
+    // 단일 통합 예측으로 고정
+    const method = 'unified';
     
     showLoading(true);
     predictBtn.disabled = true;

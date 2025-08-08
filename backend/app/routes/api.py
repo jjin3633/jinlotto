@@ -294,72 +294,28 @@ async def get_ending_analysis():
 
 @router.post("/predict")
 async def predict_numbers(request: PredictionRequest):
-    """로또 번호 예측"""
+    """로또 번호 예측 - 단일 통합 앙상블 방식"""
     try:
-        # 무거운 전체 업데이트는 배치에서 처리. 예측은 기존 저장 데이터를 사용
         df = data_service.load_data()
-        
-        # 예측 방법에 따른 번호 생성 (ml 경로는 지연 임포트로 초기 지연 최소화)
-        method = request.method
-        if method == "statistical":
-            predictions = prediction_service.statistical_prediction(df, request.num_sets)
-        elif method == "ml":
-            predictions = prediction_service.ml_prediction(df, request.num_sets)
-        elif method == "hybrid":
-            predictions = prediction_service.hybrid_prediction(df, request.num_sets)
-        else:
-            raise HTTPException(status_code=400, detail="지원하지 않는 예측 방법입니다.")
-        
-        # 분석 결과 가져오기 (근거 생성용) - 무거운 계산을 완화: 핵심 통계만 사용
-        core_analysis = {
-            "statistics": {
-                "most_frequent": 0,
-                "least_frequent": 0,
-                "avg_frequency": 0.0,
-                "std_frequency": 0.0,
-            },
-            "hot_numbers": [],
-            "cold_numbers": [],
-        }
-        try:
-            # 실패해도 예측 응답에는 영향 없도록 보호
-            freq = analysis_service.analyze_frequency(df)
-            if freq:
-                core_analysis["statistics"] = {
-                    "most_frequent": max(freq, key=freq.get),
-                    "least_frequent": min(freq, key=freq.get),
-                    "avg_frequency": float(pd.Series(list(freq.values())).mean()),
-                    "std_frequency": float(pd.Series(list(freq.values())).std()),
-                }
-            hot, cold = analysis_service.find_hot_cold_numbers(df)
-            core_analysis["hot_numbers"] = hot
-            core_analysis["cold_numbers"] = cold
-        except Exception:
-            pass
 
-        # 예측 근거 생성
-        reasoning = prediction_service.get_prediction_reasoning(method, core_analysis)
-        
-        # 신뢰도 점수 계산
-        confidence_scores = prediction_service.calculate_confidence_scores(request.method, request.num_sets)
-        
-        # 결과 생성
+        # 통합 예측 실행(내부에서 통계+ML 결합 및 휴리스틱 적용)
+        unified = prediction_service.unified_prediction(df, request.num_sets)
+
         result = PredictionResult(
-            sets=predictions,
-            confidence_scores=confidence_scores,
-            reasoning=reasoning,
-            analysis_summary=f"{method} 방법을 사용한 {request.num_sets}세트 예측",
+            sets=unified['sets'],
+            confidence_scores=unified['confidence_scores'],
+            reasoning=unified['reasoning'],
+            analysis_summary=f"통합 앙상블 방식으로 {request.num_sets}세트 예측",
             disclaimer="이 예측은 참고용이며, 실제 당첨을 보장하지 않습니다. 건전한 복권 이용을 권장합니다."
         )
-        
-        from fastapi.encoders import jsonable_encoder
+
         payload = jsonable_encoder(result.dict())
         return APIResponse(
             success=True,
             message="번호 예측이 완료되었습니다.",
             data=payload
         )
-        
+
     except Exception as e:
         logger.error(f"번호 예측 중 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))

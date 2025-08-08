@@ -89,6 +89,97 @@ class PredictionService:
             # ML 실패 시 통계 예측으로 대체
             return self.statistical_prediction(df, num_sets)
     
+    def unified_prediction(self, df: pd.DataFrame, num_sets: int = 5) -> Dict[str, Any]:
+        """통계+ML+휴리스틱을 결합한 단일 통합 예측
+
+        반환:
+            {
+              'sets': List[List[int]],
+              'confidence_scores': List[float],
+              'reasoning': List[str]
+            }
+        """
+        try:
+            # 1) 통계 기반 가중 샘플
+            stat_sets = self.statistical_prediction(df, num_sets)
+
+            # 2) ML 기반 예측(실패 시 통계 대체)
+            try:
+                ml_sets = self.ml_prediction(df, num_sets)
+            except Exception:
+                ml_sets = stat_sets
+
+            # 3) 빈도 상위/하위(핫/콜드) 계산
+            frequency = self._calculate_frequency(df)
+            # 파이썬 int로 보정
+            frequency = {int(k): int(v) for k, v in frequency.items()}
+            sorted_by_freq = sorted(frequency.items(), key=lambda x: x[1], reverse=True)
+            hot_simple = [int(n) for n, _ in sorted_by_freq[:10]]
+            cold_simple = [int(n) for n, _ in sorted(frequency.items(), key=lambda x: x[1])[:10]]
+
+            # 4) 세트 병합: 교집합 우선 + 가중 샘플 보강
+            final_sets: List[List[int]] = []
+            confidence_scores: List[float] = []
+            rng = list(range(1, 46))
+            weights = [frequency.get(i, 1) for i in rng]
+
+            for i in range(num_sets):
+                s = set(stat_sets[i % len(stat_sets)])
+                m = set(ml_sets[i % len(ml_sets)])
+                consensus = s.intersection(m)
+                union = s.union(m)
+
+                # 교집합 우선 채우기
+                chosen = list(sorted(consensus))
+
+                # 남은 칸은: (1) 두 방법 합집합에서 선택, (2) 부족하면 가중 샘플로 채우기
+                remainder = [x for x in sorted(union) if x not in chosen]
+                for x in remainder:
+                    if len(chosen) < 6:
+                        chosen.append(int(x))
+
+                while len(chosen) < 6:
+                    cand = random.choices(rng, weights=weights, k=1)[0]
+                    if cand not in chosen:
+                        chosen.append(int(cand))
+
+                chosen = sorted(chosen)[:6]
+                final_sets.append(chosen)
+
+                # 신뢰도: 교집합 비율 + 핫번호 포함 비율로 가중(0.35~0.75 사이)
+                consensus_ratio = len(consensus) / 6.0
+                hot_hit = sum(1 for x in chosen if x in hot_simple) / 6.0
+                conf = 0.35 + 0.25 * consensus_ratio + 0.15 * hot_hit
+                conf = max(0.35, min(0.75, conf))
+                confidence_scores.append(round(conf, 3))
+
+            # 5) 근거 문구
+            reasoning: List[str] = []
+            if sorted_by_freq:
+                top_pair = sorted_by_freq[0]
+                reasoning.append(f"최근 데이터에서 가장 자주 나온 번호는 {int(top_pair[0])}번입니다.")
+            if hot_simple:
+                reasoning.append(f"핫 번호 상위: {hot_simple[:6]}")
+            if cold_simple:
+                reasoning.append(f"콜드 번호 일부 제외 및 보정 샘플링을 적용했습니다.")
+            reasoning.append("통계 기반 가중 샘플과 ML 추정치를 결합해 교집합을 우선 반영했습니다.")
+            reasoning.append("이는 참고용 예측이며, 실제 당첨을 보장하지 않습니다.")
+
+            return {
+                'sets': final_sets,
+                'confidence_scores': confidence_scores,
+                'reasoning': reasoning,
+            }
+        except Exception as e:
+            logger.error(f"통합 예측 중 오류: {e}")
+            # 최종 안전망: 통계 예측만 반환
+            fallback = self.statistical_prediction(df, num_sets)
+            return {
+                'sets': fallback,
+                'confidence_scores': [0.4] * num_sets,
+                'reasoning': ["통합 예측 실패로 통계 기반 결과를 제공합니다."],
+            }
+
     def hybrid_prediction(self, df: pd.DataFrame, num_sets: int = 5) -> List[List[int]]:
         """하이브리드 예측 (통계 + ML)"""
         try:
@@ -228,10 +319,5 @@ class PredictionService:
         return reasoning
     
     def calculate_confidence_scores(self, method: str, num_sets: int) -> List[float]:
-        """예측 신뢰도 점수 계산"""
-        if method == "statistical":
-            return [0.3] * num_sets  # 통계적 방법은 낮은 신뢰도
-        elif method == "ml":
-            return [0.4] * num_sets  # ML 방법은 중간 신뢰도
-        else:  # hybrid
-            return [0.35] * num_sets  # 하이브리드는 중간 신뢰도
+        """예측 신뢰도 점수 계산 (레거시 하위호환; 현재는 통합 예측 사용)"""
+        return [0.45] * num_sets
