@@ -32,7 +32,8 @@ def build_frontend():
         "index.html",
         "styles.css", 
         "script.js",
-        "favicon.ico"
+        "favicon.ico",
+        "logo.svg",
     ]
     
     copied_files = []
@@ -51,6 +52,7 @@ def build_frontend():
     root_assets = [
         (os.path.join(project_root, 'favicon.png'), os.path.join(static_dir, 'favicon.png')),
         (os.path.join(project_root, 'logo.png'), os.path.join(static_dir, 'logo.png')),
+        (os.path.join(project_root, 'logo.svg'), os.path.join(static_dir, 'logo.svg')),
     ]
     for src, dst in root_assets:
         if os.path.exists(src):

@@ -66,3 +66,10 @@ async def serve_logo_png():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
+
+@router.get("/logo.svg")
+async def serve_logo_svg():
+    file_path = os.path.join(static_dir, "logo.svg")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
