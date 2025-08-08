@@ -437,8 +437,7 @@ body {
 
 .ad-panel {
     width: 100%;
-    height: auto;
-    aspect-ratio: 1 / 1;
+    height: 640px;
     background: #000000;
     border-radius: 16px;
     overflow: hidden;
