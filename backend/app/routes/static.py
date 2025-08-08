@@ -18,7 +18,14 @@ async def serve_frontend():
     else:
         return {"message": "Frontend files not found. Please build the frontend."}
 
-# /static 경로는 애플리케이션 레벨에서 StaticFiles로 마운트되므로 제거
+@router.get("/static/{path:path}")
+async def serve_static_files(path: str):
+    """정적 파일 서빙 (/static 경로 하위만)"""
+    file_path = os.path.join(static_dir, path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    else:
+        return {"error": "File not found"}
 
 # 루트 최상위 경로로 접근하는 정적 자산에 대한 편의 라우트
 @router.get("/styles.css")
