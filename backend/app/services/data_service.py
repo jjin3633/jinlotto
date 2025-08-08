@@ -186,8 +186,9 @@ class DataService:
             df['draw_date'] = pd.to_datetime(df['draw_date'])
             return df
         else:
-            logger.warning(f"파일 {filename}이 존재하지 않습니다. 새로 수집합니다.")
-            return self.collect_lotto_data()
+            # 초기 배포 등 첫 실행에서는 수집이 매우 오래 걸릴 수 있으므로, 우선 샘플 데이터로 즉시 응답
+            logger.warning(f"파일 {filename}이 존재하지 않습니다. 우선 샘플 데이터로 대체합니다.")
+            return self._generate_sample_data()
     
     def get_data_summary(self, df: pd.DataFrame) -> Dict:
         """데이터 요약 정보 반환"""
