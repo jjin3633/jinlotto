@@ -1,14 +1,8 @@
 fastapi
 uvicorn[standard]
+gunicorn
 pandas
 numpy
 scikit-learn
 requests
-beautifulsoup4
-matplotlib
-seaborn
-plotly
-python-multipart
 pydantic
-python-dotenv
-gunicorn

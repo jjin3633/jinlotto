@@ -55,6 +55,7 @@ logs/
 *.json
 data/
 static/
+jinlotto/
 
 # Temporary files
 *.tmp

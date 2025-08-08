@@ -17,7 +17,8 @@ from ..services.prediction_service import PredictionService
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api", tags=["lotto-analysis"])
+# 앱 레벨에서 "/api" 프리픽스를 적용하므로 여기서는 프리픽스를 지정하지 않습니다.
+router = APIRouter(tags=["lotto-analysis"])
 
 # 서비스 인스턴스 생성
 data_service = DataService()

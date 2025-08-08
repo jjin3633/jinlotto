@@ -1,6 +1,5 @@
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 import os
 
 router = APIRouter()
@@ -8,12 +7,7 @@ router = APIRouter()
 # 정적 파일 디렉토리 설정
 static_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static")
 
-# 정적 파일 마운트
-try:
-    from fastapi.staticfiles import StaticFiles
-    static_files = StaticFiles(directory=static_dir)
-except Exception as e:
-    print(f"Static files setup error: {e}")
+# 정적 파일 경로만 계산(마운트는 애플리케이션 레벨에서 수행)
 
 @router.get("/")
 async def serve_frontend():
