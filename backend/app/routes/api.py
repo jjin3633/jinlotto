@@ -294,25 +294,28 @@ async def get_ending_analysis():
 
 @router.post("/predict")
 async def predict_numbers(request: PredictionRequest):
-    """로또 번호 예측 - 단일 통합 앙상블 방식"""
+    """로또 번호 예측 - 저장형 하루 고정 결과 반환"""
     try:
         df = data_service.load_data()
 
-        # 통합 예측 실행(내부에서 통계+ML 결합 및 휴리스틱 적용)
-        unified = prediction_service.unified_prediction(df, request.num_sets)
+        fixed = prediction_service.get_daily_fixed_predictions(df, request.num_sets)
 
+        # PredictionResult 스키마 최소 충족(근거는 숨김, 요약 간략화)
         result = PredictionResult(
-            sets=unified['sets'],
-            confidence_scores=unified['confidence_scores'],
-            reasoning=unified['reasoning'],
-            analysis_summary=f"통합 앙상블 방식으로 {request.num_sets}세트 예측",
+            sets=fixed.get('sets', []),
+            confidence_scores=fixed.get('confidence_scores', [0.5] * request.num_sets),
+            reasoning=[],
+            analysis_summary=f"오늘({fixed.get('generated_for','')})의 고정 추천 세트",
             disclaimer="이 예측은 참고용이며, 실제 당첨을 보장하지 않습니다. 건전한 복권 이용을 권장합니다."
         )
 
-        payload = jsonable_encoder(result.dict())
+        payload = jsonable_encoder({
+            **fixed,
+            **result.dict(),
+        })
         return APIResponse(
             success=True,
-            message="번호 예측이 완료되었습니다.",
+            message="오늘의 고정 추천을 반환했습니다.",
             data=payload
         )
 

@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Any, Tuple
+from datetime import datetime, timezone, timedelta
+import os, json
 import logging
 """
 무거운 ML 라이브러리(sklearn)는 지연 임포트로 전환하여
@@ -179,6 +181,50 @@ class PredictionService:
                 'confidence_scores': [0.4] * num_sets,
                 'reasoning': ["통합 예측 실패로 통계 기반 결과를 제공합니다."],
             }
+
+    def _get_kst_today(self) -> datetime:
+        return datetime.now(timezone(timedelta(hours=9)))
+
+    def _get_daily_store_path(self, date_str: str) -> str:
+        backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        data_dir = os.path.join(backend_dir, 'data', 'daily_recommendations')
+        os.makedirs(data_dir, exist_ok=True)
+        return os.path.join(data_dir, f'{date_str}.json')
+
+    def get_daily_fixed_predictions(self, df: pd.DataFrame, num_sets: int = 5) -> Dict[str, Any]:
+        """저장형: 당일 첫 생성 후 파일로 고정, 당일 내 동일 결과 반환"""
+        kst_now = self._get_kst_today()
+        date_str = kst_now.strftime('%Y%m%d')
+        store_path = self._get_daily_store_path(date_str)
+
+        if os.path.exists(store_path):
+            try:
+                with open(store_path, 'r', encoding='utf-8') as f:
+                    saved = json.load(f)
+                return saved
+            except Exception as e:
+                logger.error(f"일일 추천 로드 실패, 재생성 시도: {e}")
+
+        # 생성
+        unified = self.unified_prediction(df, num_sets)
+        result: Dict[str, Any] = {
+            'mode': 'daily-fixed',
+            'generated_for': date_str,
+            'valid_until': (kst_now.replace(hour=0, minute=0, second=0, microsecond=0)
+                            + timedelta(days=1)).isoformat(),
+            'created_at': kst_now.isoformat(),
+            'sets': [[int(x) for x in s] for s in unified.get('sets', [])],
+            'confidence_scores': [float(x) for x in unified.get('confidence_scores', [])],
+            'reasoning': [],  # UI에서 미표시하므로 비움
+        }
+
+        try:
+            with open(store_path, 'w', encoding='utf-8') as f:
+                json.dump(result, f, ensure_ascii=False)
+        except Exception as e:
+            logger.error(f"일일 추천 저장 실패(비치명적): {e}")
+
+        return result
 
     def hybrid_prediction(self, df: pd.DataFrame, num_sets: int = 5) -> List[List[int]]:
         """하이브리드 예측 (통계 + ML)"""

@@ -76,14 +76,8 @@ function displayPredictionResults(data) {
         numberSets.appendChild(setElement);
     });
     
-    // 예측 근거 표시
-    predictionReasoning.innerHTML = `
-        <h4><i class="fas fa-lightbulb"></i> 예측 근거</h4>
-        <ul>
-            ${reasoning.map(reason => `<li>${reason}</li>`).join('')}
-        </ul>
-    `;
-    
+    // 근거 숨김, 결과만 표시
+    predictionReasoning.innerHTML = '';
     // 결과 표시
     predictionResults.style.display = 'block';
 }
