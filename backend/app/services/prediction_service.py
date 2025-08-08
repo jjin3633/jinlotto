@@ -20,6 +20,7 @@ class PredictionService:
         self._models_cache_by_date: Dict[str, List[Any]] = {}
         self._features_cache_by_date: Dict[str, pd.DataFrame] = {}
         self.number_columns = ['number_1', 'number_2', 'number_3', 'number_4', 'number_5', 'number_6']
+        self._last_warmup_date: str | None = None
     
     def statistical_prediction(self, df: pd.DataFrame, num_sets: int = 5) -> List[List[int]]:
         """통계 기반 번호 예측"""
@@ -129,15 +130,12 @@ class PredictionService:
             stat_sets = self.statistical_prediction(df, num_sets)
 
             # 2) ML 기반 예측(실패 시 통계 대체)
-            #    첫 호출(금일 모델/피처 캐시가 없을 때)은 ML 학습을 건너뛰어 응답 <10초 보장
-            today_key = self._get_kst_today().strftime('%Y%m%d')
-            has_cached_models = today_key in self._models_cache_by_date
-            if has_cached_models:
-                try:
-                    ml_sets = self.ml_prediction(df, num_sets)
-                except Exception:
-                    ml_sets = stat_sets
-            else:
+            #    품질 우선: ML 사용. 캐시 없으면 내부에서 학습 수행(워밍업이 선행되면 빠름)
+            try:
+                # 필요 시 당일 워밍업 보장
+                self.warmup_today_models(df)
+                ml_sets = self.ml_prediction(df, num_sets)
+            except Exception:
                 ml_sets = stat_sets
 
             # 3) 빈도 상위/하위(핫/콜드) 계산
@@ -331,9 +329,8 @@ class PredictionService:
             # 훈련/테스트 분할
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
             
-            # 모델 학습
-            # 경량화: 트리 수 축소로 학습 속도 개선
-            model = RandomForestRegressor(n_estimators=50, random_state=42)
+            # 모델 학습 (품질 균형: 트리 수 100)
+            model = RandomForestRegressor(n_estimators=100, random_state=42)
             model.fit(X_train, y_train)
             
             # 모델 성능 평가
@@ -348,6 +345,28 @@ class PredictionService:
         except Exception as e:
             logger.error(f"위치 {position} 모델 학습 중 오류: {e}")
             return None
+
+    def warmup_today_models(self, df: pd.DataFrame) -> None:
+        """금일(KST) 기준 피처/모델을 미리 생성하여 첫 요청 지연을 방지한다."""
+        try:
+            today_key = self._get_kst_today().strftime('%Y%m%d')
+            # 이미 워밍업된 날짜면 스킵
+            if self._last_warmup_date == today_key and today_key in self._models_cache_by_date:
+                return
+            # 피처 준비
+            features = self._features_cache_by_date.get(today_key)
+            if features is None:
+                features = self._create_features(df)
+                self._features_cache_by_date[today_key] = features
+            # 모델 6개 학습
+            models_for_today: List[Any] = []
+            for position in range(6):
+                model = self._train_position_model(df, position, precomputed_features=features)
+                models_for_today.append(model)
+            self._models_cache_by_date[today_key] = models_for_today
+            self._last_warmup_date = today_key
+        except Exception as e:
+            logger.error(f"워밍업 실패(비치명적): {e}")
     
     def get_prediction_reasoning(self, method: str, analysis_result: Dict[str, Any]) -> List[str]:
         """예측 근거 생성"""
