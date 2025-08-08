@@ -185,17 +185,17 @@ class PredictionService:
     def _get_kst_today(self) -> datetime:
         return datetime.now(timezone(timedelta(hours=9)))
 
-    def _get_daily_store_path(self, date_str: str) -> str:
+    def _get_daily_store_path(self, date_str: str, key: str) -> str:
         backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        data_dir = os.path.join(backend_dir, 'data', 'daily_recommendations')
+        data_dir = os.path.join(backend_dir, 'data', 'daily_recommendations', date_str)
         os.makedirs(data_dir, exist_ok=True)
-        return os.path.join(data_dir, f'{date_str}.json')
+        return os.path.join(data_dir, f'{key}.json')
 
-    def get_daily_fixed_predictions(self, df: pd.DataFrame, num_sets: int = 5) -> Dict[str, Any]:
-        """저장형: 당일 첫 생성 후 파일로 고정, 당일 내 동일 결과 반환"""
+    def get_daily_fixed_predictions(self, df: pd.DataFrame, num_sets: int = 5, user_key: str = "global") -> Dict[str, Any]:
+        """저장형: 당일 첫 생성 후 파일로 고정, 당일 내 동일 결과 반환 (사용자별 key 분리)"""
         kst_now = self._get_kst_today()
         date_str = kst_now.strftime('%Y%m%d')
-        store_path = self._get_daily_store_path(date_str)
+        store_path = self._get_daily_store_path(date_str, user_key)
 
         if os.path.exists(store_path):
             try:
@@ -213,6 +213,7 @@ class PredictionService:
             'valid_until': (kst_now.replace(hour=0, minute=0, second=0, microsecond=0)
                             + timedelta(days=1)).isoformat(),
             'created_at': kst_now.isoformat(),
+            'user_key': user_key,
             'sets': [[int(x) for x in s] for s in unified.get('sets', [])],
             'confidence_scores': [float(x) for x in unified.get('confidence_scores', [])],
             'reasoning': [],  # UI에서 미표시하므로 비움

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from typing import Dict, Any, List
@@ -293,12 +293,19 @@ async def get_ending_analysis():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/predict")
-async def predict_numbers(request: PredictionRequest):
+async def predict_numbers(req: Request, request: PredictionRequest):
     """로또 번호 예측 - 저장형 하루 고정 결과 반환"""
     try:
         df = data_service.load_data()
 
-        fixed = prediction_service.get_daily_fixed_predictions(df, request.num_sets)
+        # 사용자별 고정: 쿠키로 익명 user_id 발급/사용
+        cookie_name = 'jl_uid'
+        user_key = req.cookies.get(cookie_name)
+        if not user_key:
+            import uuid
+            user_key = uuid.uuid4().hex
+
+        fixed = prediction_service.get_daily_fixed_predictions(df, request.num_sets, user_key=user_key)
 
         # PredictionResult 스키마 최소 충족(근거는 숨김, 요약 간략화)
         result = PredictionResult(
@@ -313,11 +320,22 @@ async def predict_numbers(request: PredictionRequest):
             **fixed,
             **result.dict(),
         })
-        return APIResponse(
+        response = APIResponse(
             success=True,
             message="오늘의 고정 추천을 반환했습니다.",
             data=payload
         )
+
+        # 쿠키 설정(존재하지 않을 때만)
+        fastapi_response = JSONResponse(content=jsonable_encoder(response.dict()))
+        fastapi_response.set_cookie(
+            key=cookie_name,
+            value=user_key,
+            max_age=60*60*24*365,
+            httponly=True,
+            samesite="lax",
+        )
+        return fastapi_response
 
     except Exception as e:
         logger.error(f"번호 예측 중 오류: {e}")

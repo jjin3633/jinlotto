@@ -66,7 +66,6 @@ async function handlePrediction() {
 function displayPredictionResults(data) {
     const sets = data.sets || [];
     const confidenceScores = data.confidence_scores || [];
-    const reasoning = data.reasoning || [];
     
     // 번호 세트 표시
     numberSets.innerHTML = '';
@@ -76,8 +75,11 @@ function displayPredictionResults(data) {
         numberSets.appendChild(setElement);
     });
     
-    // 근거 숨김, 결과만 표시
-    predictionReasoning.innerHTML = '';
+    // 근거 영역 제거
+    if (predictionReasoning) {
+        predictionReasoning.innerHTML = '';
+        predictionReasoning.style.display = 'none';
+    }
     // 결과 표시
     predictionResults.style.display = 'block';
 }
