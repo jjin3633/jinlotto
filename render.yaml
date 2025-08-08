@@ -17,3 +17,10 @@ services:
       - key: CORS_ALLOW_ORIGINS
         value: "*"
 
+  - type: cron
+    name: lotto-weekly-update
+    schedule: "0 8 * * 1" # 매주 월요일 오전 08:00 (UTC 기준, 필요시 지역에 맞춰 조정)
+    env: python
+    region: oregon
+    command: python backend/batch_update.py
+
