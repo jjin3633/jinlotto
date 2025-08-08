@@ -5,6 +5,7 @@ const API_BASE_URL = window.location.hostname === 'localhost' || window.location
 
 // DOM 요소들
 const predictBtn = document.getElementById('predict-btn');
+const predictionSection = document.getElementById('prediction-section');
 const predictionResults = document.getElementById('prediction-results');
 const numberSets = document.getElementById('number-sets');
 const predictionReasoning = document.getElementById('prediction-reasoning');
@@ -81,6 +82,7 @@ function displayPredictionResults(data) {
         predictionReasoning.style.display = 'none';
     }
     // 결과 표시
+    if (predictionSection) predictionSection.style.display = 'block';
     predictionResults.style.display = 'block';
 }
 
