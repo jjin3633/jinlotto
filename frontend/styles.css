@@ -18,6 +18,14 @@ body {
     padding: 20px;
 }
 
+/* 기본: 결과/분석/고지/상태 섹션은 숨김 (버튼 클릭 시 표시) */
+.prediction-section,
+.analysis-section,
+.disclaimer-section,
+.status-card {
+    display: none;
+}
+
 /* 헤더 */
 /* 구글 스타일 히어로 영역: 화면 중앙보다 살짝 위 */
 .hero {
