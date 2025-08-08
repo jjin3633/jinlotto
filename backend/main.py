@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import logging
@@ -7,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from backend.app.routes.api import router as api_router
 from backend.app.routes.static import router as static_router
+import os
 from backend.app.utils.slack_notifier import post_to_slack
 
 # 로깅 설정
@@ -63,6 +65,10 @@ async def root():
             "disclaimer": "/api/disclaimer"
         }
     }
+
+# 정적 파일 마운트 (Range/Partial Content 지원)
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # 정적 라우터는 모든 경로를 포괄하므로 반드시 마지막에 등록
 app.include_router(static_router)
