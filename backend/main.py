@@ -44,9 +44,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 라우터 등록
+# 라우터 등록 (정적 라우터는 마지막에 등록해야 API 경로를 가로채지 않음)
 app.include_router(api_router, prefix="/api")
-app.include_router(static_router)
 
 @app.get("/api")
 async def root():
@@ -65,6 +64,8 @@ async def root():
         }
     }
 
+# 정적 라우터는 모든 경로를 포괄하므로 반드시 마지막에 등록
+app.include_router(static_router)
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """전역 예외 처리"""
