@@ -1,6 +1,5 @@
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
 import logging
 from typing import List, Dict, Optional
 from datetime import datetime
@@ -14,7 +13,9 @@ class DataService:
     
     def __init__(self):
         self.base_url = "https://www.dhlottery.co.kr/common.do"
-        self.data_file = "data/lotto_data.csv"
+        # backend 디렉토리 기준 절대 경로로 고정 (배포/로컬 모두 일관)
+        backend_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.data_file = os.path.join(backend_root, "data", "lotto_data.csv")
         
     def collect_lotto_data(self, start_draw: int = 1, end_draw: int = None) -> pd.DataFrame:
         """동행복권 API에서 로또 데이터 수집"""
