@@ -29,3 +29,16 @@ services:
       - key: SLACK_WEBHOOK_URL
         sync: false
 
+  - type: cron
+    name: lotto-health-monitor
+    # 5분마다 헬스 체크 (UTC 기준)
+    schedule: "*/5 * * * *"
+    env: python
+    region: oregon
+    command: python backend/health_monitor.py
+    envVars:
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: MONITOR_BASE_URL
+        sync: false
+
