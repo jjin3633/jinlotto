@@ -2,9 +2,10 @@ import pandas as pd
 import numpy as np
 from typing import List, Dict, Any, Tuple
 import logging
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
+"""
+무거운 ML 라이브러리(sklearn)는 지연 임포트로 전환하여
+비-ML 경로(statistical, test)가 빠르게 응답하도록 최적화합니다.
+"""
 import random
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,8 @@ class PredictionService:
     def ml_prediction(self, df: pd.DataFrame, num_sets: int = 5) -> List[List[int]]:
         """머신러닝 기반 번호 예측"""
         try:
+            # 지연 임포트 (초기 콜드 스타트 지연 최소화)
+            from sklearn.model_selection import train_test_split  # type: ignore
             # 특성 생성
             features = self._create_features(df)
             
@@ -140,9 +143,13 @@ class PredictionService:
         
         return features
     
-    def _train_position_model(self, df: pd.DataFrame, position: int) -> RandomForestRegressor:
+    def _train_position_model(self, df: pd.DataFrame, position: int):
         """특정 위치의 번호를 예측하는 모델 학습"""
         try:
+            # 지연 임포트 (RandomForest 및 평가 지표)
+            from sklearn.ensemble import RandomForestRegressor  # type: ignore
+            from sklearn.model_selection import train_test_split  # type: ignore
+            from sklearn.metrics import mean_squared_error, r2_score  # type: ignore
             features = self._create_features(df)
             target = df[self.number_columns[position]]
             
