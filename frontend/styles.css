@@ -235,10 +235,7 @@ body {
     color: #ffffff;
 }
 
-.confidence {
-    font-size: 0.9rem;
-    opacity: 0.8;
-}
+/* 신뢰도 텍스트 제거에 따라 스타일 제거 */
 
 .reasoning {
     background: #f7fafc;

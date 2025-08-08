@@ -66,13 +66,11 @@ async function handlePrediction() {
 // 예측 결과 표시
 function displayPredictionResults(data) {
     const sets = data.sets || [];
-    const confidenceScores = data.confidence_scores || [];
     
     // 번호 세트 표시
     numberSets.innerHTML = '';
     sets.forEach((set, index) => {
-        const confidence = confidenceScores[index] || 0.3;
-        const setElement = createNumberSetElement(set, index + 1, confidence);
+        const setElement = createNumberSetElement(set, index + 1);
         numberSets.appendChild(setElement);
     });
     
@@ -87,7 +85,7 @@ function displayPredictionResults(data) {
 }
 
 // 번호 세트 요소 생성
-function createNumberSetElement(numbers, setNumber, confidence) {
+function createNumberSetElement(numbers, setNumber) {
     const setElement = document.createElement('div');
     setElement.className = 'number-set';
     
@@ -96,7 +94,6 @@ function createNumberSetElement(numbers, setNumber, confidence) {
         <div class="numbers">
             ${numbers.map(num => `<div class="number">${num}</div>`).join('')}
         </div>
-        <div class="confidence">신뢰도: ${(confidence * 100).toFixed(1)}%</div>
     `;
     
     return setElement;
