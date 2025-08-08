@@ -29,6 +29,10 @@ body {
     gap: 28px;
     padding-top: 0;
     transform: translateY(-10vh);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: #ffffff;
 }
 
 .hero-actions {
@@ -38,7 +42,7 @@ body {
 }
 
 .site-logo {
-    height: 88px;
+    max-height: 88px;
 }
 
 .header h1 {
