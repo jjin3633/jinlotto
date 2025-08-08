@@ -12,38 +12,19 @@
 </head>
 <body>
     <div class="container">
-        <!-- 헤더 -->
-        <header class="header">
-            <div class="header-content">
-                <img src="/logo.png" alt="logo" class="site-logo" />
-            </div>
-        </header>
-
-        <!-- 메인 콘텐츠 -->
-        <main class="main-content">
-            
-
-            <!-- 번호 추천 섹션 -->
-            <div class="prediction-section">
-                <!-- 제목 제거: 번호 추천 텍스트 삭제 -->
-                <div class="prediction-controls">
-                    <button id="predict-btn" class="btn btn-primary" aria-label="번호 받기">
-                        번호 받기
-                    </button>
-                    <!-- 방식 선택을 제거하고 단일 통합 예측으로 고정 -->
-                </div>
-
-                <!-- 추천 결과 -->
-                <div id="prediction-results" class="prediction-results" style="display: none;">
-                    <h3>추천 번호 세트</h3>
-                    <div id="number-sets" class="number-sets"></div>
-                    <div id="prediction-reasoning" class="reasoning"></div>
-                </div>
+        <!-- 메인 (구글 스타일 히어로 레이아웃) -->
+        <main class="hero">
+            <img src="/logo.png" alt="logo" class="site-logo" />
+            <div class="hero-actions">
+                <button id="predict-btn" class="btn btn-primary" aria-label="번호 받기">번호 받기</button>
             </div>
 
-            
-
-            
+            <!-- 추천 결과 -->
+            <div id="prediction-results" class="prediction-results" style="display: none;">
+                <h3>추천 번호 세트</h3>
+                <div id="number-sets" class="number-sets"></div>
+                <div id="prediction-reasoning" class="reasoning"></div>
+            </div>
         </main>
 
         <!-- 로딩 오버레이 -->
