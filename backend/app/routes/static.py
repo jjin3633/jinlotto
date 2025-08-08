@@ -59,3 +59,10 @@ async def serve_favicon_png():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
+
+@router.get("/logo.png")
+async def serve_logo_png():
+    file_path = os.path.join(static_dir, "logo.png")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
