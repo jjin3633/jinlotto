@@ -4,7 +4,6 @@ const API_BASE_URL = window.location.hostname === 'localhost' || window.location
     : '/api';
 
 // DOM 요소들
-const serviceStatus = document.getElementById('service-status');
 const predictBtn = document.getElementById('predict-btn');
 const predictionResults = document.getElementById('prediction-results');
 const numberSets = document.getElementById('number-sets');
@@ -17,43 +16,10 @@ const loadingOverlay = document.getElementById('loading-overlay');
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
-    checkServiceStatus();
     loadAnalysisData();
-    
     // 예측 버튼 이벤트 리스너
     predictBtn.addEventListener('click', handlePrediction);
 });
-
-// 서비스 상태 확인
-async function checkServiceStatus() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/health`);
-        const data = await response.json();
-        
-        if (response.ok) {
-            updateServiceStatus(true, '서비스 정상');
-        } else {
-            updateServiceStatus(false, '서비스 오류');
-        }
-    } catch (error) {
-        console.error('서비스 상태 확인 실패:', error);
-        updateServiceStatus(false, '연결 실패');
-    }
-}
-
-// 서비스 상태 업데이트
-function updateServiceStatus(isOnline, message) {
-    const statusDot = serviceStatus.querySelector('.status-dot');
-    const statusText = serviceStatus.querySelector('.status-text');
-    
-    if (isOnline) {
-        statusDot.classList.add('online');
-        statusText.textContent = message;
-    } else {
-        statusDot.classList.remove('online');
-        statusText.textContent = message;
-    }
-}
 
 // 예측 처리
 async function handlePrediction() {
