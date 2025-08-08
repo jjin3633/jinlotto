@@ -335,6 +335,40 @@ async def predict_numbers(request: PredictionRequest):
         logger.error(f"번호 예측 중 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/predict/test")
+async def predict_numbers_test():
+    """기본 파라미터로 예측을 수행해 배포 상태를 간편 점검"""
+    try:
+        df = data_service.load_data()
+
+        method = "statistical"
+        num_sets = 3
+
+        # 예측
+        predictions = prediction_service.statistical_prediction(df, num_sets)
+
+        # 분석 및 근거/신뢰도
+        analysis_result = analysis_service.comprehensive_analysis(df)
+        reasoning = prediction_service.get_prediction_reasoning(method, analysis_result)
+        confidence_scores = prediction_service.calculate_confidence_scores(method, num_sets)
+
+        result = PredictionResult(
+            sets=predictions,
+            confidence_scores=confidence_scores,
+            reasoning=reasoning,
+            analysis_summary=f"{method} 방법을 사용한 {num_sets}세트 예측 (테스트)",
+            disclaimer="테스트 엔드포인트 응답입니다."
+        )
+
+        return APIResponse(
+            success=True,
+            message="테스트 예측이 완료되었습니다.",
+            data=result.dict()
+        )
+    except Exception as e:
+        logger.error(f"테스트 예측 중 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/visualization/frequency-chart")
 async def get_frequency_chart():
     """번호별 출현 빈도 차트 데이터"""
