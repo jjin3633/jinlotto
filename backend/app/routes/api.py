@@ -344,19 +344,14 @@ async def predict_numbers_test():
         method = "statistical"
         num_sets = 3
 
-        # 예측
+        # 가벼운 테스트: 빠른 확인을 위해 통계적 예측만 수행(무거운 종합분석 생략)
         predictions = prediction_service.statistical_prediction(df, num_sets)
-
-        # 분석 및 근거/신뢰도
-        analysis_result = analysis_service.comprehensive_analysis(df)
-        reasoning = prediction_service.get_prediction_reasoning(method, analysis_result)
-        confidence_scores = prediction_service.calculate_confidence_scores(method, num_sets)
 
         result = PredictionResult(
             sets=predictions,
-            confidence_scores=confidence_scores,
-            reasoning=reasoning,
-            analysis_summary=f"{method} 방법을 사용한 {num_sets}세트 예측 (테스트)",
+            confidence_scores=[0.5] * num_sets,
+            reasoning=["테스트 엔드포인트의 경량 응답"],
+            analysis_summary=f"{method} 방법 {num_sets}세트 예측(테스트)",
             disclaimer="테스트 엔드포인트 응답입니다."
         )
 
