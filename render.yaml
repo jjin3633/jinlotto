@@ -25,4 +25,7 @@ services:
     env: python
     region: oregon
     command: python backend/batch_update.py
+    envVars:
+      - key: SLACK_WEBHOOK_URL
+        sync: false
 
