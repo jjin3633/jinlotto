@@ -436,8 +436,10 @@ body {
 }
 
 .ad-panel {
-    width: 640px;
-    height: 640px;
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    aspect-ratio: 1 / 1;
     background: #000000;
     border-radius: 16px;
     overflow: hidden;
@@ -452,12 +454,7 @@ body {
 }
 
 @media (max-width: 700px) {
-    .ad-panel {
-        width: 100%;
-        max-width: 640px;
-        height: auto;
-        aspect-ratio: 1 / 1;
-    }
+    .ad-panel { max-width: 100%; }
 }
 
 /* 스크롤바 스타일 */
