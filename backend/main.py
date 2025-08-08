@@ -22,7 +22,6 @@ async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     # 시작 시 실행
     logger.info("로또 분석 서비스가 시작되었습니다.")
-    post_to_slack("✅ JinLotto 서버 시작")
     yield
     # 종료 시 실행
     logger.info("로또 분석 서비스가 종료되었습니다.")
