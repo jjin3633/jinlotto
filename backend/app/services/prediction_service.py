@@ -16,7 +16,9 @@ class PredictionService:
     """로또 번호 예측 서비스"""
     
     def __init__(self):
-        self.models = {}
+        # date(YYYYMMDD)별로 포지션 모델/피처 캐시
+        self._models_cache_by_date: Dict[str, List[Any]] = {}
+        self._features_cache_by_date: Dict[str, pd.DataFrame] = {}
         self.number_columns = ['number_1', 'number_2', 'number_3', 'number_4', 'number_5', 'number_6']
     
     def statistical_prediction(self, df: pd.DataFrame, num_sets: int = 5) -> List[List[int]]:
@@ -53,37 +55,58 @@ class PredictionService:
         try:
             # 지연 임포트 (초기 콜드 스타트 지연 최소화)
             from sklearn.model_selection import train_test_split  # type: ignore
-            # 특성 생성
-            features = self._create_features(df)
-            
-            # 각 번호별로 모델 학습
-            predictions = []
-            for _ in range(num_sets):
-                predicted_numbers = []
-                
+            # KST 기준 날짜 키로 캐시 활용
+            today_key = self._get_kst_today().strftime('%Y%m%d')
+
+            # 피처를 일자 기준으로 1회만 생성
+            if today_key in self._features_cache_by_date:
+                features = self._features_cache_by_date[today_key]
+            else:
+                features = self._create_features(df)
+                self._features_cache_by_date[today_key] = features
+
+            # 포지션 모델 6개를 1회만 학습하여 캐시에 저장 후 재사용
+            if today_key not in self._models_cache_by_date:
+                models_for_today: List[Any] = []
                 for position in range(6):
-                    # 해당 위치의 번호 예측
-                    model = self._train_position_model(df, position)
-                    if model is not None:
-                        # 최근 데이터로 예측
-                        recent_features = features.tail(1)
-                        pred = model.predict(recent_features)[0]
-                        # 1-45 범위로 제한
-                        pred = max(1, min(45, int(round(pred))))
-                        predicted_numbers.append(pred)
-                    else:
-                        # 모델 실패 시 랜덤 선택
-                        predicted_numbers.append(random.randint(1, 45))
-                
-                # 중복 제거 및 정렬
-                predicted_numbers = sorted(list(set(predicted_numbers)))
-                while len(predicted_numbers) < 6:
-                    additional = random.randint(1, 45)
-                    if additional not in predicted_numbers:
-                        predicted_numbers.append(additional)
-                predicted_numbers.sort()
-                predictions.append(predicted_numbers)
-            
+                    model = self._train_position_model(df, position, precomputed_features=features)
+                    models_for_today.append(model)
+                self._models_cache_by_date[today_key] = models_for_today
+
+            models_for_today = self._models_cache_by_date.get(today_key, [None]*6)
+
+            # 최근 피처 1행으로 예측 1세트 산출
+            recent_features = features.tail(1)
+            base_predicted = []
+            for position in range(6):
+                m = models_for_today[position]
+                if m is not None:
+                    pred = m.predict(recent_features)[0]
+                    pred = max(1, min(45, int(round(pred))))
+                    base_predicted.append(pred)
+                else:
+                    base_predicted.append(random.randint(1, 45))
+
+            # 첫 세트는 모델 예측 기반, 나머지는 가중 샘플 혼합으로 빠르게 생성
+            base_set = sorted(list(set(base_predicted)))
+            while len(base_set) < 6:
+                add = random.randint(1, 45)
+                if add not in base_set:
+                    base_set.append(add)
+            base_set.sort()
+
+            predictions: List[List[int]] = [base_set]
+
+            # 빈도 기반 가중치로 경량 보강 세트 생성
+            frequency = self._calculate_frequency(df)
+            weights = [frequency.get(i, 1) for i in range(1, 46)]
+            for _ in range(max(0, num_sets - 1)):
+                chosen = set(base_set)
+                while len(chosen) < 6:
+                    cand = random.choices(range(1, 46), weights=weights, k=1)[0]
+                    chosen.add(int(cand))
+                predictions.append(sorted(list(chosen))[:6])
+
             return predictions
             
         except Exception as e:
@@ -281,14 +304,14 @@ class PredictionService:
         
         return features
     
-    def _train_position_model(self, df: pd.DataFrame, position: int):
+    def _train_position_model(self, df: pd.DataFrame, position: int, precomputed_features: pd.DataFrame | None = None):
         """특정 위치의 번호를 예측하는 모델 학습"""
         try:
             # 지연 임포트 (RandomForest 및 평가 지표)
             from sklearn.ensemble import RandomForestRegressor  # type: ignore
             from sklearn.model_selection import train_test_split  # type: ignore
             from sklearn.metrics import mean_squared_error, r2_score  # type: ignore
-            features = self._create_features(df)
+            features = precomputed_features if precomputed_features is not None else self._create_features(df)
             target = df[self.number_columns[position]]
             
             # 충분한 데이터가 있는지 확인
@@ -303,7 +326,8 @@ class PredictionService:
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
             
             # 모델 학습
-            model = RandomForestRegressor(n_estimators=100, random_state=42)
+            # 경량화: 트리 수 축소로 학습 속도 개선
+            model = RandomForestRegressor(n_estimators=50, random_state=42)
             model.fit(X_train, y_train)
             
             # 모델 성능 평가
