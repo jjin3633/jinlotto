@@ -45,7 +45,17 @@ async def serve_root_script():
 @router.get("/favicon.ico")
 async def serve_favicon():
     # frontend에 favicon.ico가 존재하면 빌드 시 static으로 복사됨
-    file_path = os.path.join(static_dir, "favicon.ico")
+    ico_path = os.path.join(static_dir, "favicon.ico")
+    png_path = os.path.join(static_dir, "favicon.png")
+    if os.path.exists(ico_path):
+        return FileResponse(ico_path)
+    if os.path.exists(png_path):
+        return FileResponse(png_path)
+    return {"error": "File not found"}
+
+@router.get("/favicon.png")
+async def serve_favicon_png():
+    file_path = os.path.join(static_dir, "favicon.png")
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}

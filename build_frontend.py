@@ -47,6 +47,19 @@ def build_frontend():
         else:
             print(f"파일 없음: {src_path}")
     
+    # 프로젝트 루트(배포 저장소 루트)에 위치한 자산도 함께 복사 (요청 사항)
+    root_assets = [
+        (os.path.join(project_root, 'favicon.png'), os.path.join(static_dir, 'favicon.png')),
+        (os.path.join(project_root, 'logo.png'), os.path.join(static_dir, 'logo.png')),
+    ]
+    for src, dst in root_assets:
+        if os.path.exists(src):
+            shutil.copy2(src, dst)
+            copied_files.append(os.path.basename(dst))
+            print(f"복사 완료: {os.path.basename(dst)}")
+        else:
+            print(f"파일 없음: {src}")
+
     if copied_files:
         print("\n프론트엔드 빌드 완료")
         print(f"복사된 파일: {', '.join(copied_files)}")
