@@ -352,10 +352,11 @@ async def predict_numbers(request: PredictionRequest):
             disclaimer="이 예측은 참고용이며, 실제 당첨을 보장하지 않습니다. 건전한 복권 이용을 권장합니다."
         )
         
+        from fastapi.encoders import jsonable_encoder
         return APIResponse(
             success=True,
             message="번호 예측이 완료되었습니다.",
-            data=result.dict()
+            data=jsonable_encoder(result.dict())
         )
         
     except Exception as e:
