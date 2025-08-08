@@ -16,6 +16,8 @@ services:
         value: 3.11.7
       - key: CORS_ALLOW_ORIGINS
         value: "*"
+      - key: SLACK_WEBHOOK_URL
+        sync: false
 
   - type: cron
     name: lotto-weekly-update
