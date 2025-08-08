@@ -26,3 +26,26 @@ async def serve_static_files(path: str):
         return FileResponse(file_path)
     else:
         return {"error": "File not found"}
+
+# 루트 최상위 경로로 접근하는 정적 자산에 대한 편의 라우트
+@router.get("/styles.css")
+async def serve_root_styles():
+    file_path = os.path.join(static_dir, "styles.css")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
+
+@router.get("/script.js")
+async def serve_root_script():
+    file_path = os.path.join(static_dir, "script.js")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
+
+@router.get("/favicon.ico")
+async def serve_favicon():
+    # frontend에 favicon.ico가 존재하면 빌드 시 static으로 복사됨
+    file_path = os.path.join(static_dir, "favicon.ico")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}

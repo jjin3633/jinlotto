@@ -31,7 +31,8 @@ def build_frontend():
     frontend_files = [
         "index.html",
         "styles.css", 
-        "script.js"
+        "script.js",
+        "favicon.ico"
     ]
     
     copied_files = []
