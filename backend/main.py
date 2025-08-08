@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 from app.routes.api import router as api_router
 from app.routes.static import router as static_router
+from app.utils.slack_notifier import post_to_slack
 
 # 로깅 설정
 logging.basicConfig(
@@ -21,9 +22,11 @@ async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     # 시작 시 실행
     logger.info("로또 분석 서비스가 시작되었습니다.")
+    post_to_slack("✅ JinLotto 서버 시작")
     yield
     # 종료 시 실행
     logger.info("로또 분석 서비스가 종료되었습니다.")
+    post_to_slack("🛑 JinLotto 서버 종료")
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -67,6 +70,10 @@ async def root():
 async def global_exception_handler(request, exc):
     """전역 예외 처리"""
     logger.error(f"예상치 못한 오류 발생: {exc}")
+    try:
+        post_to_slack(f"❗ 서버 오류 발생: {str(exc)}")
+    except Exception:
+        pass
     return JSONResponse(
         status_code=500,
         content={
