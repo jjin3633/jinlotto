@@ -11,8 +11,9 @@ import sys
 def build_frontend():
     """프론트엔드 파일들을 backend/static 디렉토리로 복사"""
     
-    # 경로 설정
-    project_root = os.path.dirname(os.path.abspath(__file__))
+    # 경로 설정 (이 스크립트는 scripts/ 내부에 있으므로 상위가 프로젝트 루트)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
     frontend_dir = os.path.join(project_root, "frontend")
     backend_dir = os.path.join(project_root, "backend")
     static_dir = os.path.join(backend_dir, "static")
@@ -48,12 +49,14 @@ def build_frontend():
         else:
             print(f"파일 없음: {src_path}")
     
-    # 프로젝트 루트(배포 저장소 루트)에 위치한 자산도 함께 복사 (요청 사항)
+    # 정리된 자산 경로에서 복사
+    images_dir = os.path.join(project_root, 'assets', 'images')
+    media_dir = os.path.join(project_root, 'assets', 'media')
     root_assets = [
-        (os.path.join(project_root, 'favicon.png'), os.path.join(static_dir, 'favicon.png')),
-        (os.path.join(project_root, 'logo.png'), os.path.join(static_dir, 'logo.png')),
-        (os.path.join(project_root, 'logo.svg'), os.path.join(static_dir, 'logo.svg')),
-        (os.path.join(project_root, 'Main_KR_Home.mp4'), os.path.join(static_dir, 'Main_KR_Home.mp4')),
+        (os.path.join(images_dir, 'favicon.png'), os.path.join(static_dir, 'favicon.png')),
+        (os.path.join(images_dir, 'logo.png'), os.path.join(static_dir, 'logo.png')),
+        (os.path.join(images_dir, 'logo.svg'), os.path.join(static_dir, 'logo.svg')),
+        (os.path.join(media_dir, 'Main_KR_Home.mp4'), os.path.join(static_dir, 'Main_KR_Home.mp4')),
     ]
     for src, dst in root_assets:
         if os.path.exists(src):
