@@ -18,16 +18,11 @@ async def serve_frontend():
     else:
         return {"message": "Frontend files not found. Please build the frontend."}
 
-@router.get("/{path:path}")
+@router.get("/static/{path:path}")
 async def serve_static_files(path: str):
-    """정적 파일 서빙"""
+    """정적 파일 서빙 (/static 경로 하위만)"""
     file_path = os.path.join(static_dir, path)
     if os.path.exists(file_path) and os.path.isfile(file_path):
         return FileResponse(file_path)
     else:
-        # 파일이 없으면 index.html로 리다이렉트 (SPA 지원)
-        index_path = os.path.join(static_dir, "index.html")
-        if os.path.exists(index_path):
-            return FileResponse(index_path)
-        else:
-            return {"error": "File not found"}
+        return {"error": "File not found"}
