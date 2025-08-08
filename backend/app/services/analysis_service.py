@@ -20,8 +20,9 @@ class AnalysisService:
         for col in self.number_columns:
             all_numbers.extend(df[col].tolist())
         
+        # Counter는 키/값에 numpy 타입이 포함될 수 있으므로 모두 파이썬 int로 캐스팅
         frequency = Counter(all_numbers)
-        return dict(frequency)
+        return {int(k): int(v) for k, v in frequency.items()}
     
     def find_hot_cold_numbers(self, df: pd.DataFrame, recent_draws: int = 50) -> Tuple[List[int], List[int]]:
         """최근 회차 기준 핫/콜드 번호 분석"""
@@ -232,13 +233,14 @@ class AnalysisService:
             numbers = [row[col] for col in self.number_columns]
             sums.append(sum(numbers))
         
+        sum_counter = Counter(sums)
         return {
-            'min_sum': min(sums),
-            'max_sum': max(sums),
-            'avg_sum': np.mean(sums),
-            'std_sum': np.std(sums),
-            'sum_distribution': Counter(sums),
-            'most_common_sums': Counter(sums).most_common(10)
+            'min_sum': int(min(sums)),
+            'max_sum': int(max(sums)),
+            'avg_sum': float(np.mean(sums)),
+            'std_sum': float(np.std(sums)),
+            'sum_distribution': {int(k): int(v) for k, v in sum_counter.items()},
+            'most_common_sums': [(int(s), int(c)) for s, c in sum_counter.most_common(10)]
         }
     
     def analyze_gap_patterns(self, df: pd.DataFrame) -> Dict[str, Any]:
@@ -250,13 +252,14 @@ class AnalysisService:
             gaps = [numbers[i+1] - numbers[i] for i in range(len(numbers)-1)]
             all_gaps.extend(gaps)
         
+        gap_counter = Counter(all_gaps)
         return {
-            'min_gap': min(all_gaps),
-            'max_gap': max(all_gaps),
-            'avg_gap': np.mean(all_gaps),
-            'std_gap': np.std(all_gaps),
-            'gap_distribution': Counter(all_gaps),
-            'most_common_gaps': Counter(all_gaps).most_common(10)
+            'min_gap': int(min(all_gaps)),
+            'max_gap': int(max(all_gaps)),
+            'avg_gap': float(np.mean(all_gaps)),
+            'std_gap': float(np.std(all_gaps)),
+            'gap_distribution': {int(k): int(v) for k, v in gap_counter.items()},
+            'most_common_gaps': [(int(g), int(c)) for g, c in gap_counter.most_common(10)]
         }
     
     def analyze_prime_number_patterns(self, df: pd.DataFrame) -> Dict[str, Any]:
@@ -269,11 +272,12 @@ class AnalysisService:
             prime_count = len([n for n in numbers if n in prime_numbers])
             prime_counts.append(prime_count)
         
+        prime_counter = Counter(prime_counts)
         return {
-            'prime_numbers': prime_numbers,
-            'avg_prime_count': np.mean(prime_counts),
-            'prime_count_distribution': Counter(prime_counts),
-            'most_common_prime_count': Counter(prime_counts).most_common()
+            'prime_numbers': [int(n) for n in prime_numbers],
+            'avg_prime_count': float(np.mean(prime_counts)),
+            'prime_count_distribution': {int(k): int(v) for k, v in prime_counter.items()},
+            'most_common_prime_count': [(int(k), int(v)) for k, v in prime_counter.most_common()]
         }
     
     def analyze_ending_patterns(self, df: pd.DataFrame) -> Dict[str, Any]:

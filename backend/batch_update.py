@@ -10,7 +10,8 @@ import json
 import traceback
 import requests
 
-from app.services.data_service import DataService
+# Render 크론에서 루트 기준으로 실행되므로 절대 경로 임포트를 사용
+from backend.app.services.data_service import DataService
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

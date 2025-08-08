@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from typing import Dict, Any, List
 import logging
 import pandas as pd
@@ -36,6 +37,7 @@ async def get_data_summary():
     try:
         df = data_service.load_data()
         summary = data_service.get_data_summary(df)
+        summary = jsonable_encoder(summary)
         
         return APIResponse(
             success=True,

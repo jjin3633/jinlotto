@@ -194,25 +194,31 @@ class DataService:
         """데이터 요약 정보 반환"""
         try:
             latest_row = df.iloc[-1]
+            # JSON 직렬화 가능한 기본형으로 캐스팅
+            missing_values = {k: int(v) for k, v in df.isnull().sum().to_dict().items()}
+            duplicates = int(df.duplicated().sum())
+
+            latest_draw = {
+                'draw_number': int(latest_row['draw_number']),
+                'draw_date': latest_row['draw_date'].strftime('%Y-%m-%d'),
+                'number_1': int(latest_row['number_1']),
+                'number_2': int(latest_row['number_2']),
+                'number_3': int(latest_row['number_3']),
+                'number_4': int(latest_row['number_4']),
+                'number_5': int(latest_row['number_5']),
+                'number_6': int(latest_row['number_6']),
+                'bonus_number': int(latest_row['bonus_number'])
+            }
+
             return {
-                'total_draws': len(df),
+                'total_draws': int(len(df)),
                 'date_range': {
                     'start': df['draw_date'].min().strftime('%Y-%m-%d'),
                     'end': df['draw_date'].max().strftime('%Y-%m-%d')
                 },
-                'missing_values': df.isnull().sum().to_dict(),
-                'duplicates': df.duplicated().sum(),
-                'latest_draw': {
-                    'draw_number': latest_row['draw_number'],
-                    'draw_date': latest_row['draw_date'].strftime('%Y-%m-%d'),
-                    'number_1': latest_row['number_1'],
-                    'number_2': latest_row['number_2'],
-                    'number_3': latest_row['number_3'],
-                    'number_4': latest_row['number_4'],
-                    'number_5': latest_row['number_5'],
-                    'number_6': latest_row['number_6'],
-                    'bonus_number': latest_row['bonus_number']
-                }
+                'missing_values': missing_values,
+                'duplicates': duplicates,
+                'latest_draw': latest_draw
             }
         except Exception as e:
             logger.error(f"데이터 요약 생성 중 오류: {e}")
