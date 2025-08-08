@@ -278,7 +278,7 @@ class AnalysisService:
     
     def analyze_ending_patterns(self, df: pd.DataFrame) -> Dict[str, Any]:
         """끝자리 패턴 분석"""
-        ending_counts = defaultdict(int)
+        ending_counts = Counter()
         
         for _, row in df.iterrows():
             numbers = [row[col] for col in self.number_columns]
@@ -293,12 +293,12 @@ class AnalysisService:
     def _get_top_numbers(self, df: pd.DataFrame, top_n: int = 5) -> List[int]:
         """가장 자주 나온 번호들 반환"""
         frequency = self.analyze_frequency(df)
-        return sorted(frequency.items(), key=lambda x: x[1], reverse=True)[:top_n]
+        return [num for num, _ in sorted(frequency.items(), key=lambda x: x[1], reverse=True)[:top_n]]
     
     def _get_cold_numbers(self, df: pd.DataFrame, top_n: int = 5) -> List[int]:
         """가장 적게 나온 번호들 반환"""
         frequency = self.analyze_frequency(df)
-        return sorted(frequency.items(), key=lambda x: x[1])[:top_n]
+        return [num for num, _ in sorted(frequency.items(), key=lambda x: x[1])[:top_n]]
     
     def get_recent_trends(self, df: pd.DataFrame, recent_draws: int = 20) -> Dict[str, Any]:
         """최근 트렌드 분석"""
@@ -344,7 +344,7 @@ class AnalysisService:
                 'number_range_distribution': range_distribution,
                 'consecutive_patterns': consecutive_patterns,
                 'missing_periods': missing_periods,
-                'recent_trends': recent_trends,
+            'recent_trends': recent_trends,
                 
                 # 새로운 세밀한 분석 결과
                 'seasonal_analysis': seasonal_patterns,
@@ -357,10 +357,10 @@ class AnalysisService:
                 'ending_analysis': ending_patterns,
                 
                 'statistics': {
-                    'most_frequent': max(frequency.items(), key=lambda x: x[1]),
-                    'least_frequent': min(frequency.items(), key=lambda x: x[1]),
-                    'avg_frequency': np.mean(list(frequency.values())),
-                    'std_frequency': np.std(list(frequency.values()))
+                    'most_frequent': list(max(frequency.items(), key=lambda x: x[1])),
+                    'least_frequent': list(min(frequency.items(), key=lambda x: x[1])),
+                    'avg_frequency': float(np.mean(list(frequency.values()))),
+                    'std_frequency': float(np.std(list(frequency.values())))
                 }
             }
             

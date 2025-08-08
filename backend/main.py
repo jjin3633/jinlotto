@@ -5,9 +5,9 @@ import logging
 import uvicorn
 from contextlib import asynccontextmanager
 
-from app.routes.api import router as api_router
-from app.routes.static import router as static_router
-from app.utils.slack_notifier import post_to_slack
+from backend.app.routes.api import router as api_router
+from backend.app.routes.static import router as static_router
+from backend.app.utils.slack_notifier import post_to_slack
 
 # 로깅 설정
 logging.basicConfig(
