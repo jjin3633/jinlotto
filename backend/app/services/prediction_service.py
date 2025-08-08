@@ -67,12 +67,9 @@ class PredictionService:
                 self._features_cache_by_date[today_key] = features
 
             # 포지션 모델 6개를 1회만 학습하여 캐시에 저장 후 재사용
+            # 요청 경로에서는 캐시가 없으면 학습을 건너뛰어 첫 응답 지연을 방지
             if today_key not in self._models_cache_by_date:
-                models_for_today: List[Any] = []
-                for position in range(6):
-                    model = self._train_position_model(df, position, precomputed_features=features)
-                    models_for_today.append(model)
-                self._models_cache_by_date[today_key] = models_for_today
+                return self.statistical_prediction(df, num_sets)
 
             models_for_today = self._models_cache_by_date.get(today_key, [None]*6)
 
@@ -132,8 +129,7 @@ class PredictionService:
             # 2) ML 기반 예측(실패 시 통계 대체)
             #    품질 우선: ML 사용. 캐시 없으면 내부에서 학습 수행(워밍업이 선행되면 빠름)
             try:
-                # 필요 시 당일 워밍업 보장
-                self.warmup_today_models(df)
+                # 요청 경로에서는 워밍업을 호출하지 않음(헬스체크/초기 로딩에서 실행)
                 ml_sets = self.ml_prediction(df, num_sets)
             except Exception:
                 ml_sets = stat_sets
