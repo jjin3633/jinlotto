@@ -187,9 +187,32 @@ class PredictionService:
         
         if method == "statistical":
             reasoning.append("통계적 빈도 분석을 기반으로 한 예측입니다.")
-            reasoning.append(f"가장 자주 출현한 번호: {analysis_result.get('statistics', {}).get('most_frequent', (0, 0))[0]}번")
-            reasoning.append(f"최근 핫 번호: {analysis_result.get('hot_numbers', [])[:5]}")
-            reasoning.append(f"콜드 번호: {analysis_result.get('cold_numbers', [])[:5]}")
+            stats = analysis_result.get('statistics', {}) if isinstance(analysis_result, dict) else {}
+            most_freq = stats.get('most_frequent')
+            # most_frequent가 [num, freq] 또는 단일 정수인 경우 모두 처리
+            if isinstance(most_freq, (list, tuple)) and len(most_freq) > 0:
+                most_freq_num = most_freq[0]
+            else:
+                most_freq_num = most_freq if isinstance(most_freq, (int, float)) else None
+
+            hot_numbers = analysis_result.get('hot_numbers', []) if isinstance(analysis_result, dict) else []
+            if hot_numbers and isinstance(hot_numbers[0], (list, tuple)):
+                hot_numbers_simple = [int(x[0]) for x in hot_numbers[:5] if isinstance(x, (list, tuple)) and x]
+            else:
+                hot_numbers_simple = [int(x) for x in hot_numbers[:5]] if hot_numbers else []
+
+            cold_numbers = analysis_result.get('cold_numbers', []) if isinstance(analysis_result, dict) else []
+            if cold_numbers and isinstance(cold_numbers[0], (list, tuple)):
+                cold_numbers_simple = [int(x[0]) for x in cold_numbers[:5] if isinstance(x, (list, tuple)) and x]
+            else:
+                cold_numbers_simple = [int(x) for x in cold_numbers[:5]] if cold_numbers else []
+
+            if most_freq_num is not None:
+                reasoning.append(f"가장 자주 출현한 번호: {int(most_freq_num)}번")
+            if hot_numbers_simple:
+                reasoning.append(f"최근 핫 번호: {hot_numbers_simple}")
+            if cold_numbers_simple:
+                reasoning.append(f"콜드 번호: {cold_numbers_simple}")
         
         elif method == "ml":
             reasoning.append("머신러닝 모델을 통한 패턴 분석 기반 예측입니다.")

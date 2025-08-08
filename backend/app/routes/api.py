@@ -353,10 +353,11 @@ async def predict_numbers(request: PredictionRequest):
         )
         
         from fastapi.encoders import jsonable_encoder
+        payload = jsonable_encoder(result.dict())
         return APIResponse(
             success=True,
             message="번호 예측이 완료되었습니다.",
-            data=jsonable_encoder(result.dict())
+            data=payload
         )
         
     except Exception as e:
