@@ -73,3 +73,10 @@ async def serve_logo_svg():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
+
+@router.get("/Main_KR_Home.mp4")
+async def serve_main_video():
+    file_path = os.path.join(static_dir, "Main_KR_Home.mp4")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}

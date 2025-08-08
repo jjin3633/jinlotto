@@ -53,6 +53,7 @@ def build_frontend():
         (os.path.join(project_root, 'favicon.png'), os.path.join(static_dir, 'favicon.png')),
         (os.path.join(project_root, 'logo.png'), os.path.join(static_dir, 'logo.png')),
         (os.path.join(project_root, 'logo.svg'), os.path.join(static_dir, 'logo.svg')),
+        (os.path.join(project_root, 'Main_KR_Home.mp4'), os.path.join(static_dir, 'Main_KR_Home.mp4')),
     ]
     for src, dst in root_assets:
         if os.path.exists(src):
