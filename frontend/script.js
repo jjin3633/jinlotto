@@ -25,6 +25,8 @@ async function handlePrediction() {
     predictBtn.disabled = true;
     
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
         const response = await fetch(`${API_BASE_URL}/predict`, {
             method: 'POST',
             headers: {
@@ -34,8 +36,10 @@ async function handlePrediction() {
                 method: method,
                 num_sets: 5,
                 include_bonus: false
-            })
+            }),
+            signal: controller.signal
         });
+        clearTimeout(timeoutId);
         
         const data = await response.json();
         
@@ -46,7 +50,11 @@ async function handlePrediction() {
         }
     } catch (error) {
         console.error('예측 요청 실패:', error);
-        showError('서버 연결에 실패했습니다.');
+        if (error.name === 'AbortError') {
+            showError('요청이 지연되어 취소되었습니다. 잠시 후 다시 시도해주세요.');
+        } else {
+            showError('서버 연결에 실패했습니다.');
+        }
     } finally {
         showLoading(false);
         predictBtn.disabled = false;

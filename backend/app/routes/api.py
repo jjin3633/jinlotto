@@ -294,8 +294,8 @@ async def get_ending_analysis():
 async def predict_numbers(request: PredictionRequest):
     """로또 번호 예측"""
     try:
-        # 예측 전 최신 데이터로 갱신하여 결과가 항상 최신 데이터에 기반하도록 보장
-        df = data_service.update_latest_data()
+        # 무거운 전체 업데이트는 배치에서 처리. 예측은 기존 저장 데이터를 사용
+        df = data_service.load_data()
         
         # 예측 방법에 따른 번호 생성
         if request.method == "statistical":

@@ -8,11 +8,6 @@ import os
 import time
 
 logger = logging.getLogger(__name__)
-try:
-    from app.utils.slack_notifier import post_to_slack
-except Exception:
-    def post_to_slack(_msg: str) -> None:  # type: ignore
-        return
 
 class DataService:
     """로또 데이터 수집 및 전처리 서비스"""
@@ -103,10 +98,6 @@ class DataService:
                 data = self._fetch_draw_data(draw_no)
                 if data:
                     logger.info(f"최신 회차: {draw_no}회차")
-                    try:
-                        post_to_slack(f"📥 최신 회차 확인 완료: {draw_no}회차")
-                    except Exception:
-                        pass
                     return draw_no
             
             # 기본값 반환
@@ -115,10 +106,6 @@ class DataService:
             
         except Exception as e:
             logger.error(f"최신 회차 확인 중 오류: {e}")
-            try:
-                post_to_slack(f"⚠️ 최신 회차 확인 실패: {e}")
-            except Exception:
-                pass
             return 1000
     
     def _generate_sample_data(self) -> pd.DataFrame:
