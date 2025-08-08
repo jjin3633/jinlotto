@@ -8,15 +8,11 @@ const predictBtn = document.getElementById('predict-btn');
 const predictionResults = document.getElementById('prediction-results');
 const numberSets = document.getElementById('number-sets');
 const predictionReasoning = document.getElementById('prediction-reasoning');
-const hotNumbers = document.getElementById('hot-numbers');
-const coldNumbers = document.getElementById('cold-numbers');
-const oddEvenRatio = document.getElementById('odd-even-ratio');
-const seasonalAnalysis = document.getElementById('seasonal-analysis');
+// 분석 섹션 제거로 관련 DOM 요소 제거
 const loadingOverlay = document.getElementById('loading-overlay');
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
-    loadAnalysisData();
     // 예측 버튼 이벤트 리스너
     predictBtn.addEventListener('click', handlePrediction);
 });
@@ -99,60 +95,7 @@ function createNumberSetElement(numbers, setNumber, confidence) {
     return setElement;
 }
 
-// 분석 데이터 로드
-async function loadAnalysisData() {
-    try {
-        // 종합 분석 데이터 가져오기
-        const response = await fetch(`${API_BASE_URL}/analysis/comprehensive`);
-        const data = await response.json();
-        
-        if (response.ok && data.success) {
-            displayAnalysisData(data.data);
-        }
-    } catch (error) {
-        console.error('분석 데이터 로드 실패:', error);
-    }
-}
-
-// 분석 데이터 표시
-function displayAnalysisData(data) {
-    // 핫 번호 표시
-    const hotNumbersList = data.hot_numbers || [];
-    hotNumbers.innerHTML = hotNumbersList.slice(0, 10).map(num => 
-        `<span class="number-item">${num}</span>`
-    ).join('');
-    
-    // 콜드 번호 표시
-    const coldNumbersList = data.cold_numbers || [];
-    coldNumbers.innerHTML = coldNumbersList.slice(0, 10).map(num => 
-        `<span class="number-item">${num}</span>`
-    ).join('');
-    
-    // 홀짝 비율 표시
-    const oddEven = data.odd_even_ratio || {};
-    oddEvenRatio.innerHTML = `
-        <div class="ratio-item">
-            <div class="ratio-value">${(oddEven.odd_ratio * 100 || 0).toFixed(1)}%</div>
-            <div class="ratio-label">홀수</div>
-        </div>
-        <div class="ratio-item">
-            <div class="ratio-value">${(oddEven.even_ratio * 100 || 0).toFixed(1)}%</div>
-            <div class="ratio-label">짝수</div>
-        </div>
-    `;
-    
-    // 계절별 분석 표시
-    const seasonal = data.seasonal_analysis || {};
-    seasonalAnalysis.innerHTML = Object.entries(seasonal).map(([season, data]) => {
-        const hotNums = data.hot_numbers ? data.hot_numbers.slice(0, 3).map(item => item[0]).join(', ') : '';
-        return `
-            <div class="season-item">
-                <span>${season}</span>
-                <span>${data.draw_count}회, 핫번호: ${hotNums}</span>
-            </div>
-        `;
-    }).join('');
-}
+// 분석 섹션 제거로 분석 데이터 로드/표시 로직 삭제
 
 // 로딩 표시/숨김
 function showLoading(show) {
@@ -165,56 +108,7 @@ function showError(message) {
 }
 
 // 샘플 데이터로 테스트 (API 실패 시)
-function loadSampleData() {
-    // 핫 번호 샘플
-    hotNumbers.innerHTML = [37, 8, 17, 2, 19, 33, 15, 41, 1, 44].map(num => 
-        `<span class="number-item">${num}</span>`
-    ).join('');
-    
-    // 콜드 번호 샘플
-    coldNumbers.innerHTML = [9, 41, 42, 4, 22, 15, 28, 6, 32, 23].map(num => 
-        `<span class="number-item">${num}</span>`
-    ).join('');
-    
-    // 홀짝 비율 샘플
-    oddEvenRatio.innerHTML = `
-        <div class="ratio-item">
-            <div class="ratio-value">52.3%</div>
-            <div class="ratio-label">홀수</div>
-        </div>
-        <div class="ratio-item">
-            <div class="ratio-value">47.7%</div>
-            <div class="ratio-label">짝수</div>
-        </div>
-    `;
-    
-    // 계절별 분석 샘플
-    seasonalAnalysis.innerHTML = `
-        <div class="season-item">
-            <span>봄</span>
-            <span>303회, 핫번호: 13, 38, 3</span>
-        </div>
-        <div class="season-item">
-            <span>여름</span>
-            <span>298회, 핫번호: 1, 20, 34</span>
-        </div>
-        <div class="season-item">
-            <span>가을</span>
-            <span>286회, 핫번호: 21, 45, 14</span>
-        </div>
-        <div class="season-item">
-            <span>겨울</span>
-            <span>296회, 핫번호: 33, 39, 27</span>
-        </div>
-    `;
-}
+// 분석 섹션 제거로 샘플 데이터 표시 로직 삭제
 
 // API 실패 시 샘플 데이터 사용
-if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    // 로컬 환경에서는 샘플 데이터도 로드
-    setTimeout(() => {
-        if (hotNumbers.children.length === 0) {
-            loadSampleData();
-        }
-    }, 2000);
-}
+// 분석 샘플 데이터 로직 제거
