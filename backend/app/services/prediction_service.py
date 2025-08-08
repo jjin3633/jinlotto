@@ -129,9 +129,15 @@ class PredictionService:
             stat_sets = self.statistical_prediction(df, num_sets)
 
             # 2) ML 기반 예측(실패 시 통계 대체)
-            try:
-                ml_sets = self.ml_prediction(df, num_sets)
-            except Exception:
+            #    첫 호출(금일 모델/피처 캐시가 없을 때)은 ML 학습을 건너뛰어 응답 <10초 보장
+            today_key = self._get_kst_today().strftime('%Y%m%d')
+            has_cached_models = today_key in self._models_cache_by_date
+            if has_cached_models:
+                try:
+                    ml_sets = self.ml_prediction(df, num_sets)
+                except Exception:
+                    ml_sets = stat_sets
+            else:
                 ml_sets = stat_sets
 
             # 3) 빈도 상위/하위(핫/콜드) 계산
@@ -228,7 +234,7 @@ class PredictionService:
             except Exception as e:
                 logger.error(f"일일 추천 로드 실패, 재생성 시도: {e}")
 
-        # 생성
+        # 생성 (첫 호출은 ML 건너뛰도록 unified_prediction 내부에서 제어)
         unified = self.unified_prediction(df, num_sets)
         result: Dict[str, Any] = {
             'mode': 'daily-fixed',
