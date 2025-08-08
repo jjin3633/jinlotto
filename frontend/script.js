@@ -28,7 +28,7 @@ async function handlePrediction() {
     
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초 타임아웃
+        const timeoutId = setTimeout(() => controller.abort(), 90000); // 90초 타임아웃 (초기 콜드스타트 대비)
         const response = await fetch(`${API_BASE_URL}/predict`, {
             method: 'POST',
             headers: {
