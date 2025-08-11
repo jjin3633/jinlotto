@@ -51,20 +51,20 @@ body {
 
 .site-logo {
     height: auto;
-    /* 약 10% 상향 */
-    width: clamp(132px, 33vw, 264px);
+    /* 약 50% 상향 */
+    width: clamp(180px, 45vw, 360px);
     max-width: 80vw;
 }
 
 /* 반응형: 화면이 줄어들수록 로고를 단계적으로 축소 */
 @media (max-width: 1024px) {
-    .site-logo { width: clamp(121px, 31vw, 220px); }
+    .site-logo { width: clamp(165px, 42vw, 300px); }
 }
 @media (max-width: 768px) {
-    .site-logo { width: clamp(110px, 40vw, 198px); }
+    .site-logo { width: clamp(150px, 54vw, 270px); }
 }
 @media (max-width: 480px) {
-    .site-logo { width: clamp(99px, 53vw, 176px); }
+    .site-logo { width: clamp(135px, 72vw, 240px); }
 }
 
 .header h1 {
