@@ -500,20 +500,34 @@ async def get_odd_even_chart():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/debug/db-stats")
-async def get_db_stats(db: Session = Depends(get_session)):
-    """DB 테이블별 행 수를 반환하여 저장 여부를 빠르게 점검"""
+async def get_db_stats():
+    """DB 테이블별 행 수와 연결 상태를 반환(항상 200)"""
+    import os
     try:
-        stats = {
-            "users": db.query(dbm.User).count(),
-            "predictions": db.query(dbm.Prediction).count(),
-            "draws": db.query(dbm.Draw).count(),
-            "matches": db.query(dbm.Match).count(),
-        }
-        return APIResponse(success=True, message="DB 통계", data=stats)
+        # 지연 임포트로 세션 생성 중 예외를 잡기 쉽게 함
+        from backend.app.db.session import SessionLocal, DATABASE_URL
+        db = SessionLocal()
+        try:
+            stats = {
+                "users": db.query(dbm.User).count(),
+                "predictions": db.query(dbm.Prediction).count(),
+                "draws": db.query(dbm.Draw).count(),
+                "matches": db.query(dbm.Match).count(),
+            }
+            return APIResponse(success=True, message="DB 통계", data={
+                "stats": stats,
+                "database_url_prefix": (DATABASE_URL or os.getenv("DATABASE_URL", "")).split("@")[-1][:60]
+            })
+        finally:
+            try:
+                db.close()
+            except Exception:
+                pass
     except Exception as e:
         logger.error(f"DB 통계 조회 중 오류: {e}")
-        # 디버그 용도로 에러를 본문으로 반환(일시적)
-        return APIResponse(success=False, message="DB 통계 조회 실패", data=None, error=str(e))
+        return APIResponse(success=False, message="DB 통계 조회 실패", data={
+            "database_url_prefix": (os.getenv("DATABASE_URL", "")).split("@")[-1][:60]
+        }, error=str(e))
 
 @router.get("/disclaimer")
 async def get_disclaimer():
