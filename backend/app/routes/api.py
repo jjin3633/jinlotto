@@ -499,6 +499,21 @@ async def get_odd_even_chart():
         logger.error(f"홀짝 차트 데이터 생성 중 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/debug/db-stats")
+async def get_db_stats(db: Session = Depends(get_session)):
+    """DB 테이블별 행 수를 반환하여 저장 여부를 빠르게 점검"""
+    try:
+        stats = {
+            "users": db.query(dbm.User).count(),
+            "predictions": db.query(dbm.Prediction).count(),
+            "draws": db.query(dbm.Draw).count(),
+            "matches": db.query(dbm.Match).count(),
+        }
+        return APIResponse(success=True, message="DB 통계", data=stats)
+    except Exception as e:
+        logger.error(f"DB 통계 조회 중 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/disclaimer")
 async def get_disclaimer():
     """법적 고지사항"""
