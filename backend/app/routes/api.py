@@ -126,6 +126,75 @@ async def sync_csv_to_db(db: Session = Depends(get_session)):
         logger.error(f"CSV→DB 동기화 중 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/data/sync-db-range")
+async def sync_csv_to_db_range(start_draw: int, end_draw: int, db: Session = Depends(get_session)):
+    """CSV에 저장된 특정 회차 구간만 DB.draws로 백필(업서트)"""
+    try:
+        df = data_service.load_data()
+        if df is None or df.empty:
+            return APIResponse(success=False, message="동기화할 데이터가 없습니다.")
+
+        # 구간 필터
+        try:
+            fdf = df[(df['draw_number'] >= start_draw) & (df['draw_number'] <= end_draw)]
+        except Exception:
+            # 안전 캐스팅 후 필터
+            tmp = df.copy()
+            tmp['draw_number'] = pd.to_numeric(tmp['draw_number'], errors='coerce')
+            fdf = tmp[(tmp['draw_number'] >= start_draw) & (tmp['draw_number'] <= end_draw)]
+
+        if fdf is None or fdf.empty:
+            return APIResponse(success=False, message="해당 구간에 데이터가 없습니다.")
+
+        inserted = 0
+        updated = 0
+        processed = 0
+        for _, row in fdf.iterrows():
+            try:
+                draw_number = int(row['draw_number'])
+                numbers = [
+                    int(row['number_1']),
+                    int(row['number_2']),
+                    int(row['number_3']),
+                    int(row['number_4']),
+                    int(row['number_5']),
+                    int(row['number_6']),
+                ]
+                bonus = int(row['bonus_number'])
+                draw_date = pd.to_datetime(row['draw_date'], errors='coerce').date()
+
+                obj = db.query(dbm.Draw).filter(dbm.Draw.draw_number == draw_number).first()
+                if not obj:
+                    obj = dbm.Draw(
+                        draw_number=draw_number,
+                        draw_date=draw_date,
+                        numbers=numbers,
+                        bonus_number=bonus,
+                    )
+                    db.add(obj)
+                    inserted += 1
+                else:
+                    obj.draw_date = draw_date
+                    obj.numbers = numbers
+                    obj.bonus_number = bonus
+                    updated += 1
+                processed += 1
+                if processed % 100 == 0:
+                    db.commit()
+            except Exception:
+                continue
+        db.commit()
+        return APIResponse(success=True, message="구간 CSV→DB 동기화 완료", data={
+            "start_draw": start_draw,
+            "end_draw": end_draw,
+            "inserted": inserted,
+            "updated": updated,
+            "total": int(len(fdf))
+        })
+    except Exception as e:
+        logger.error(f"CSV→DB 구간 동기화 중 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/data/update")
 async def update_latest_data(db: Session = Depends(get_session)):
     """최신 데이터 업데이트"""
