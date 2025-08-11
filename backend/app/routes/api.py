@@ -529,6 +529,32 @@ async def get_db_stats():
             "database_url_prefix": (os.getenv("DATABASE_URL", "")).split("@")[-1][:60]
         }, error=str(e))
 
+@router.get("/debug/db-conn")
+async def get_db_conn_info():
+    """DB 연결 상태(아주 경량): 드라이버/다이얼렉트/핑 결과만 반환"""
+    import os
+    info: Dict[str, Any] = {}
+    try:
+        from backend.app.db.session import engine, DATABASE_URL
+        info["database_url_scheme"] = (DATABASE_URL.split("://", 1)[0] if DATABASE_URL else None)
+        try:
+            info["dialect"] = str(engine.dialect.name)
+            info["driver"] = getattr(engine.dialect, "driver", None)
+        except Exception:
+            pass
+        # 초경량 연결 테스트
+        try:
+            with engine.connect() as conn:
+                conn.exec_driver_sql("SELECT 1")
+            info["can_connect"] = True
+            return APIResponse(success=True, message="DB 연결 OK", data=info)
+        except Exception as e:
+            info["can_connect"] = False
+            return APIResponse(success=False, message="DB 연결 실패", data=info, error=str(e))
+    except Exception as e:
+        info["env_has_database_url"] = bool(os.getenv("DATABASE_URL"))
+        return APIResponse(success=False, message="엔진 로드 실패", data=info, error=str(e))
+
 @router.get("/disclaimer")
 async def get_disclaimer():
     """법적 고지사항"""
