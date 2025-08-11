@@ -79,6 +79,53 @@ async def collect_lotto_data(start_draw: int = 1, end_draw: int = None):
         logger.error(f"데이터 수집 중 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/data/sync-db")
+async def sync_csv_to_db(db: Session = Depends(get_session)):
+    """CSV에 저장된 회차들을 DB.draws로 백필(업서트)"""
+    try:
+        df = data_service.load_data()
+        if df is None or df.empty:
+            return APIResponse(success=False, message="동기화할 데이터가 없습니다.")
+
+        inserted = 0
+        updated = 0
+        for _, row in df.iterrows():
+            try:
+                draw_number = int(row['draw_number'])
+                numbers = [
+                    int(row['number_1']),
+                    int(row['number_2']),
+                    int(row['number_3']),
+                    int(row['number_4']),
+                    int(row['number_5']),
+                    int(row['number_6']),
+                ]
+                bonus = int(row['bonus_number'])
+                draw_date = pd.to_datetime(row['draw_date'], errors='coerce').date()
+
+                obj = db.query(dbm.Draw).filter(dbm.Draw.draw_number == draw_number).first()
+                if not obj:
+                    obj = dbm.Draw(
+                        draw_number=draw_number,
+                        draw_date=draw_date,
+                        numbers=numbers,
+                        bonus_number=bonus,
+                    )
+                    db.add(obj)
+                    inserted += 1
+                else:
+                    obj.draw_date = draw_date
+                    obj.numbers = numbers
+                    obj.bonus_number = bonus
+                    updated += 1
+            except Exception:
+                continue
+        db.commit()
+        return APIResponse(success=True, message="CSV→DB 동기화 완료", data={"inserted": inserted, "updated": updated, "total": int(len(df))})
+    except Exception as e:
+        logger.error(f"CSV→DB 동기화 중 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/data/update")
 async def update_latest_data(db: Session = Depends(get_session)):
     """최신 데이터 업데이트"""
@@ -137,6 +184,30 @@ async def update_latest_data(db: Session = Depends(get_session)):
         )
     except Exception as e:
         logger.error(f"데이터 업데이트 중 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/data/match-latest")
+async def match_latest_and_notify(db: Session = Depends(get_session)):
+    """CSV의 최신 회차 번호 기준으로 DB.draws 매칭 계산 후 Slack 요약 발송"""
+    try:
+        df = data_service.load_data()
+        summary = data_service.get_data_summary(df)
+        latest = summary.get('latest_draw', {}) or {}
+        if not latest:
+            return APIResponse(success=False, message="최신 회차 정보를 찾을 수 없습니다.")
+        draw_number = int(latest.get('draw_number'))
+
+        counts = evaluate_matches_for_draw(db, draw_number)
+        try:
+            post_to_slack(
+                f"📣 회차 {draw_number} 결과 요약\n1등: {counts.get(1,0)}\n2등: {counts.get(2,0)}\n3등: {counts.get(3,0)}"
+            )
+        except Exception:
+            pass
+
+        return APIResponse(success=True, message="최신 회차 매칭/요약 완료", data={"draw_number": draw_number, "counts": counts})
+    except Exception as e:
+        logger.error(f"최신 매칭/요약 중 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/data/latest")
