@@ -48,21 +48,23 @@ body {
     gap: 12px;
 }
 
+
 .site-logo {
     height: auto;
-    width: clamp(120px, 30vw, 240px); /* 화면에 따라 120~240px 사이로 유연 축소 */
-    max-width: 80vw; /* 아주 작은 화면에서는 컨테이너 폭을 넘지 않도록 */
+    /* 약 10% 상향 */
+    width: clamp(132px, 33vw, 264px);
+    max-width: 80vw;
 }
 
 /* 반응형: 화면이 줄어들수록 로고를 단계적으로 축소 */
 @media (max-width: 1024px) {
-    .site-logo { width: clamp(110px, 28vw, 200px); }
+    .site-logo { width: clamp(121px, 31vw, 220px); }
 }
 @media (max-width: 768px) {
-    .site-logo { width: clamp(100px, 36vw, 180px); }
+    .site-logo { width: clamp(110px, 40vw, 198px); }
 }
 @media (max-width: 480px) {
-    .site-logo { width: clamp(90px, 48vw, 160px); }
+    .site-logo { width: clamp(99px, 53vw, 176px); }
 }
 
 .header h1 {
