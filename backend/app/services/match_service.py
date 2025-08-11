@@ -1,5 +1,6 @@
 from typing import Dict, List, Tuple
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from backend.app.db.models import Prediction, Draw, Match
 
@@ -35,8 +36,18 @@ def evaluate_matches_for_draw(db: Session, draw_number: int) -> Dict[int, int]:
 
     counts = {1: 0, 2: 0, 3: 0}
 
-    # 모든 예측에 대해 평가(생성일 필터가 필요하면 draw.draw_date 기준으로 제한 가능)
-    preds = db.query(Prediction).all()
+    # 토요일 20:00 KST(= UTC 11:00) 이전에 생성된 예측만 매칭
+    cutoff_utc = datetime(
+        draw.draw_date.year, draw.draw_date.month, draw.draw_date.day, 11, 0, 0
+    )
+    preds = (
+        db.query(Prediction)
+        .filter(
+            Prediction.generated_for <= draw.draw_date,
+            Prediction.created_at <= cutoff_utc,
+        )
+        .all()
+    )
     for p in preds:
         # 중복 저장 방지
         exists = (
