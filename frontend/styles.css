@@ -49,7 +49,20 @@ body {
 }
 
 .site-logo {
-    height: 200px;
+    height: auto;
+    width: clamp(120px, 30vw, 240px); /* 화면에 따라 120~240px 사이로 유연 축소 */
+    max-width: 80vw; /* 아주 작은 화면에서는 컨테이너 폭을 넘지 않도록 */
+}
+
+/* 반응형: 화면이 줄어들수록 로고를 단계적으로 축소 */
+@media (max-width: 1024px) {
+    .site-logo { width: clamp(110px, 28vw, 200px); }
+}
+@media (max-width: 768px) {
+    .site-logo { width: clamp(100px, 36vw, 180px); }
+}
+@media (max-width: 480px) {
+    .site-logo { width: clamp(90px, 48vw, 160px); }
 }
 
 .header h1 {
