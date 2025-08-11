@@ -1,9 +1,0 @@
-fastapi
-uvicorn[standard]
-gunicorn
-pandas
-numpy
-scikit-learn
-requests
-pydantic
-psycopg2-binary==2.9.9
