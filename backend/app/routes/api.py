@@ -29,12 +29,7 @@ prediction_service = PredictionService()
 @router.get("/health")
 async def health_check():
     """서비스 상태 확인"""
-    # 품질 보장을 위한 백그라운드 워밍업 트리거(비차단)
-    try:
-        df = data_service.load_data()
-        prediction_service.warmup_today_models(df)
-    except Exception:
-        pass
+    # 헬스 체크는 매우 가볍게 유지 (I/O/학습 작업 금지)
     return {"status": "healthy", "message": "로또 분석 서비스가 정상 작동 중입니다."}
 
 @router.get("/data/summary")

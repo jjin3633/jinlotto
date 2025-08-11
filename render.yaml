@@ -20,13 +20,24 @@ services:
         sync: false
 
   - type: cron
-    name: lotto-weekly-update
+    name: lotto-weekly-http-update
     schedule: "0 23 * * 0" # 매주 일요일 23:00 UTC = 월요일 08:00 KST
     env: python
     region: oregon
-    command: python backend/batch_update.py
+    command: |
+      python - <<'PY'
+      import os, requests, sys
+      base = os.environ.get('MONITOR_BASE_URL')
+      if not base:
+          sys.exit('MONITOR_BASE_URL is not set')
+      url = base.rstrip('/') + '/api/data/update'
+      r = requests.post(url, timeout=120)
+      print(r.status_code, r.text)
+      PY
     envVars:
       - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: MONITOR_BASE_URL
         sync: false
 
   - type: cron
