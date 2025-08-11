@@ -35,11 +35,11 @@
 ```
 jinlotto/
 ├── README.md                 # 프로젝트 문서
-├── requirements.txt          # Python 의존성
-├── runtime.txt              # Python 버전
-├── Procfile                 # Render 배포 설정
-├── build_frontend.py        # 프론트엔드 빌드 스크립트
-├── main.py                  # 애플리케이션 진입점
+├── requirements.txt          # Python 의존성 (psycopg3 사용)
+├── runtime.txt               # Python 버전
+├── Procfile                  # Render 배포 설정
+├── render.yaml               # Render infra 설정(선택)
+├── main.py                   # 애플리케이션 진입점 (backend.main:app 노출)
 ├── .gitignore              # Git 무시 파일
 ├── docs/                   # 문서
 │   ├── DEPLOYMENT.md       # 배포 가이드
@@ -52,7 +52,7 @@ jinlotto/
 │   │   ├── services/      # 비즈니스 로직
 │   │   ├── routes/        # API 라우트
 │   │   └── utils/         # 유틸리티
-│   ├── data/              # 데이터 파일
+│   ├── data/              # 로컬 개발 데이터(운영에선 DB 사용)
 │   ├── tests/             # 테스트 코드
 │   └── static/            # 정적 파일 (빌드됨)
 └── frontend/              # 프론트엔드 코드
@@ -84,7 +84,7 @@ pip install -r requirements.txt
 
 4. **프론트엔드 빌드**
 ```bash
-python build_frontend.py
+python scripts/build_frontend.py
 ```
 
 5. **서버 실행**
@@ -101,8 +101,19 @@ http://localhost:8000
 
 1. **Render에서 배포**
    - GitHub 저장소 연결
-   - Build Command: `pip install -r requirements.txt && python build_frontend.py`
-   - Start Command: `gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --worker-class uvicorn.workers.UvicornWorker --timeout 120`
+   - Build Command: `pip install -r requirements.txt && python scripts/build_frontend.py`
+   - Start Command: `gunicorn main:app --bind 0.0.0.0:$PORT --workers 1 --worker-class uvicorn.workers.UvicornWorker --timeout 180`
+   - Health Check Path: `/api/health`
+
+2. **환경 변수(Render)**
+   - `DATABASE_URL`: Supabase Session/Transaction Pooler, psycopg3 스킴 사용
+     - 예) `postgresql+psycopg://postgres.<ref>:<PASSWORD>@aws-0-ap-northeast-2.pooler.supabase.com:5432/postgres?sslmode=require`
+   - `SLACK_WEBHOOK_URL`: Slack 인커밍 웹훅 URL
+
+3. **GitHub Actions(선택)**
+   - Keep-Alive(10분 간격 헬스 핑): `.github/workflows/keep-alive.yml`
+   - Weekly Update(월 09:00 KST): `.github/workflows/lotto-weekly-update.yml`
+     - 리포지토리 시크릿: `BASE_URL`, `SLACK_WEBHOOK_URL`
 
 ## 📊 API 엔드포인트
 
@@ -114,6 +125,9 @@ http://localhost:8000
 - `GET /api/data/summary` - 데이터 요약 정보
 - `POST /api/data/collect` - 데이터 수집
 - `POST /api/data/update` - 데이터 업데이트
+ - `POST /api/data/sync-db` - CSV → DB(draws) 전체 백필
+ - `POST /api/data/sync-db-range?start_draw=&end_draw=` - CSV → DB 구간 백필
+ - `POST /api/data/match-latest` - 최신 회차 매칭 강제 + Slack 요약 발송
 
 ### 분석 API
 - `GET /api/analysis/comprehensive` - 종합 분석
@@ -122,6 +136,20 @@ http://localhost:8000
 
 ### 예측 API
 - `POST /api/predict` - 번호 예측 (5세트)
+
+### 디버그 API(운영 전 비활성화 권장)
+- `GET /api/debug/db-conn` - DB 연결 확인
+- `GET /api/debug/db-stats` - 테이블 카운트 확인
+
+## 🔔 운영 로직(주요 자동화)
+
+1) 매주 월요일 09:00 KST:
+- GitHub Actions가 `POST /api/data/update` 호출
+- 최신 회차를 `draws`에 upsert 후, 예측과 매칭 → Slack에 1~3등 요약 발송
+
+2) 매칭 필터 규칙:
+- `generated_for <= draw_date`
+- `created_at <= draw_date 20:00 KST(= UTC 11:00)`
 
 ## 🎯 사용 예시
 
