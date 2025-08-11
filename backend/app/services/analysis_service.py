@@ -132,7 +132,7 @@ class AnalysisService:
     def analyze_seasonal_patterns(self, df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
         """계절별 패턴 분석"""
         # 날짜 컬럼을 datetime으로 변환
-        df['draw_date'] = pd.to_datetime(df['draw_date'])
+        df['draw_date'] = pd.to_datetime(df['draw_date'], format='mixed', errors='coerce')
         df['month'] = df['draw_date'].dt.month
         df['season'] = df['month'].apply(self._get_season)
         
@@ -165,7 +165,7 @@ class AnalysisService:
     
     def analyze_monthly_patterns(self, df: pd.DataFrame) -> Dict[int, Dict[str, Any]]:
         """월별 패턴 분석"""
-        df['draw_date'] = pd.to_datetime(df['draw_date'])
+        df['draw_date'] = pd.to_datetime(df['draw_date'], format='mixed', errors='coerce')
         df['month'] = df['draw_date'].dt.month
         
         monthly_analysis = {}
@@ -186,7 +186,7 @@ class AnalysisService:
     
     def analyze_weekly_patterns(self, df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
         """요일별 패턴 분석"""
-        df['draw_date'] = pd.to_datetime(df['draw_date'])
+        df['draw_date'] = pd.to_datetime(df['draw_date'], format='mixed', errors='coerce')
         df['weekday'] = df['draw_date'].dt.day_name()
         
         weekly_analysis = {}
@@ -208,7 +208,7 @@ class AnalysisService:
     
     def analyze_date_patterns(self, df: pd.DataFrame) -> Dict[str, Dict[str, Any]]:
         """날짜별 패턴 분석 (1일~31일)"""
-        df['draw_date'] = pd.to_datetime(df['draw_date'])
+        df['draw_date'] = pd.to_datetime(df['draw_date'], format='mixed', errors='coerce')
         df['day'] = df['draw_date'].dt.day
         
         date_analysis = {}

@@ -8,6 +8,8 @@ from contextlib import asynccontextmanager
 from backend.app.routes.api import router as api_router
 from backend.app.routes.static import router as static_router
 from backend.app.utils.slack_notifier import post_to_slack
+from backend.app.db.session import engine
+from backend.app.db.models import Base
 
 # 로깅 설정
 logging.basicConfig(
@@ -22,6 +24,11 @@ async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     # 시작 시 실행
     logger.info("로또 분석 서비스가 시작되었습니다.")
+    # DB 테이블 생성(마이그레이션 도구 없을 때 초기가동)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logger.error(f"DB 초기화 실패: {e}")
     yield
     # 종료 시 실행
     logger.info("로또 분석 서비스가 종료되었습니다.")

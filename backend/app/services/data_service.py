@@ -152,7 +152,8 @@ class DataService:
             logger.info(f"중복 데이터: {duplicates}개")
             
             # 데이터 타입 변환
-            df['draw_date'] = pd.to_datetime(df['draw_date'])
+            # 다양한 포맷 혼재 대비: pandas 2.x의 mixed 포맷 허용 + 안전하게 coerce
+            df['draw_date'] = pd.to_datetime(df['draw_date'], format='mixed', errors='coerce')
             
             # 이상치 탐지 (1-45 범위 확인)
             for col in ['number_1', 'number_2', 'number_3', 'number_4', 'number_5', 'number_6', 'bonus_number']:
@@ -183,7 +184,8 @@ class DataService:
         
         if os.path.exists(filename):
             df = pd.read_csv(filename, encoding='utf-8')
-            df['draw_date'] = pd.to_datetime(df['draw_date'])
+            # 다양한 포맷 혼재 대비
+            df['draw_date'] = pd.to_datetime(df['draw_date'], format='mixed', errors='coerce')
             return df
         else:
             # 초기 배포 등 첫 실행에서는 수집이 매우 오래 걸릴 수 있으므로, 우선 샘플 데이터로 즉시 응답
@@ -193,6 +195,13 @@ class DataService:
     def get_data_summary(self, df: pd.DataFrame) -> Dict:
         """데이터 요약 정보 반환"""
         try:
+            # draw_date가 문자열로 남아있을 경우 안전 변환
+            if not pd.api.types.is_datetime64_any_dtype(df['draw_date']):
+                df = df.copy()
+                try:
+                    df['draw_date'] = pd.to_datetime(df['draw_date'], format='mixed', errors='coerce')
+                except Exception:
+                    df['draw_date'] = pd.to_datetime(df['draw_date'], errors='coerce')
             latest_row = df.iloc[-1]
             # JSON 직렬화 가능한 기본형으로 캐스팅
             missing_values = {k: int(v) for k, v in df.isnull().sum().to_dict().items()}
@@ -248,6 +257,11 @@ class DataService:
                     # 기존 데이터와 병합
                     updated_df = pd.concat([existing_df, new_data], ignore_index=True)
                     updated_df = updated_df.sort_values('draw_number').reset_index(drop=True)
+                    # 날짜 컬럼 일괄 보정
+                    try:
+                        updated_df['draw_date'] = pd.to_datetime(updated_df['draw_date'], format='mixed', errors='coerce')
+                    except Exception:
+                        updated_df['draw_date'] = pd.to_datetime(updated_df['draw_date'], errors='coerce')
                     
                     # 저장
                     self.save_data(updated_df)
