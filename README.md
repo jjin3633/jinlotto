@@ -21,6 +21,11 @@
 - **scikit-learn**: 머신러닝
 - **requests**: API 통신
 
+### Database
+- **Supabase (PostgreSQL)**: 영구 저장소(예측/회차/매칭)
+- **SQLAlchemy 2.0**: ORM/세션 관리
+- **psycopg (psycopg3)**: PostgreSQL 드라이버 (Session/Transaction Pooler, IPv4 호환)
+
 ### Frontend
 - **HTML5/CSS3**: 반응형 디자인
 - **JavaScript**: 동적 인터페이스
@@ -29,6 +34,10 @@
 ### Deployment
 - **Render**: 클라우드 배포
 - **Gunicorn**: WSGI 서버
+
+### Infra/DevOps
+- **GitHub Actions**: Keep-Alive(10분), Weekly Update(월 09:00 KST)
+- **Slack Incoming Webhooks**: 매칭 요약(1~3등) 알림
 
 ## 📁 프로젝트 구조
 
