@@ -512,7 +512,8 @@ async def get_db_stats(db: Session = Depends(get_session)):
         return APIResponse(success=True, message="DB 통계", data=stats)
     except Exception as e:
         logger.error(f"DB 통계 조회 중 오류: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # 디버그 용도로 에러를 본문으로 반환(일시적)
+        return APIResponse(success=False, message="DB 통계 조회 실패", data=None, error=str(e))
 
 @router.get("/disclaimer")
 async def get_disclaimer():
