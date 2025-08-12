@@ -12,11 +12,144 @@ const predictionReasoning = document.getElementById('prediction-reasoning');
 // 분석 섹션 제거로 관련 DOM 요소 제거
 const loadingOverlay = document.getElementById('loading-overlay');
 
+// 스트레칭 모달 관련 요소
+const stretchModal = document.getElementById('stretch-modal');
+const stretchCloseBtn = document.getElementById('stretch-close');
+const stretchDoneBtn = document.getElementById('stretch-done');
+const watchRemaining = document.getElementById('watch-remaining');
+const ytContainer = document.getElementById('yt-player');
+const fallbackVideo = document.getElementById('fallback-video');
+
+let ytPlayer = null;
+let watchTimer = null;
+let secondsWatched = 0;
+let playerReady = false;
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     // 예측 버튼 이벤트 리스너
-    predictBtn.addEventListener('click', handlePrediction);
+    predictBtn.addEventListener('click', openStretchModal);
+    if (stretchCloseBtn) stretchCloseBtn.addEventListener('click', handleStretchClose);
+    if (stretchDoneBtn) stretchDoneBtn.addEventListener('click', handleStretchDone);
 });
+
+// 유튜브 API 로드 콜백 (전역 요구)
+window.onYouTubeIframeAPIReady = function() {
+    // 유튜브 API 준비됐을 때만 생성하도록 지연 생성
+    playerReady = true;
+};
+
+// 모달 열기: 비디오/타이머 초기화
+function openStretchModal() {
+    resetStretchState();
+    if (stretchModal) {
+        stretchModal.classList.remove('hidden');
+        stretchModal.setAttribute('aria-hidden', 'false');
+    }
+    initPlayerOrFallback();
+}
+
+function handleStretchClose() {
+    // 닫기 시에는 번호를 받지 않음
+    cleanupPlayerAndTimer();
+    if (stretchModal) {
+        stretchModal.classList.add('hidden');
+        stretchModal.setAttribute('aria-hidden', 'true');
+    }
+}
+
+function handleStretchDone() {
+    // 1분 시청 완료 시에만 예측 수행
+    if (stretchDoneBtn && !stretchDoneBtn.disabled) {
+        handlePrediction();
+        // 완료 후 모달 닫기
+        handleStretchClose();
+    }
+}
+
+function resetStretchState() {
+    secondsWatched = 0;
+    if (watchRemaining) watchRemaining.textContent = `남은 시청 시간: 60초`;
+    if (stretchDoneBtn) stretchDoneBtn.disabled = true;
+}
+
+function initPlayerOrFallback() {
+    // 유튜브 사용 시: 공개 스트레칭 영상 ID 예시(필요시 교체)
+    const YT_VIDEO_ID = 'dQw4w9WgXcQ';
+    if (window.YT && window.YT.Player && playerReady && ytContainer) {
+        ytPlayer = new YT.Player('yt-player', {
+            videoId: YT_VIDEO_ID,
+            playerVars: { 'autoplay': 1, 'controls': 1, 'playsinline': 1 },
+            events: {
+                'onStateChange': onPlayerStateChange
+            }
+        });
+        if (fallbackVideo) fallbackVideo.style.display = 'none';
+    } else {
+        // 폴백: 로컬/빈 비디오로 1분 타이머만 진행
+        if (fallbackVideo) {
+            fallbackVideo.src = '';
+            fallbackVideo.style.display = 'block';
+        }
+        startWatchTimer();
+    }
+}
+
+function onPlayerStateChange(event) {
+    // 재생 중일 때만 시청 시간 카운트
+    const YT_PLAYING = 1;
+    const YT_PAUSED = 2;
+    const YT_ENDED = 0;
+    if (event.data === YT_PLAYING) {
+        startWatchTimer();
+    } else if (event.data === YT_PAUSED) {
+        stopWatchTimer();
+    } else if (event.data === YT_ENDED) {
+        // 끝났으면 남은 시간이 0이 아니면 맞춰줌
+        secondsWatched = Math.max(secondsWatched, 60);
+        updateWatchUI();
+        checkEnableDone();
+        stopWatchTimer();
+    }
+}
+
+function startWatchTimer() {
+    if (watchTimer) return;
+    watchTimer = setInterval(() => {
+        secondsWatched += 1;
+        updateWatchUI();
+        checkEnableDone();
+        if (secondsWatched >= 60) {
+            stopWatchTimer();
+        }
+    }, 1000);
+}
+
+function stopWatchTimer() {
+    if (watchTimer) {
+        clearInterval(watchTimer);
+        watchTimer = null;
+    }
+}
+
+function updateWatchUI() {
+    const remaining = Math.max(0, 60 - secondsWatched);
+    if (watchRemaining) watchRemaining.textContent = `남은 시청 시간: ${remaining}초`;
+}
+
+function checkEnableDone() {
+    if (secondsWatched >= 60 && stretchDoneBtn) {
+        stretchDoneBtn.disabled = false;
+    }
+}
+
+function cleanupPlayerAndTimer() {
+    stopWatchTimer();
+    if (ytPlayer && ytPlayer.destroy) {
+        try { ytPlayer.destroy(); } catch (e) {}
+    }
+    ytPlayer = null;
+}
 
 // 예측 처리
 async function handlePrediction() {

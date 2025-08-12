@@ -16,7 +16,7 @@
         <main class="hero">
             <img src="/logo.svg" alt="logo" class="site-logo" />
             <div class="hero-actions">
-                <button id="predict-btn" class="btn btn-primary" aria-label="번호 받기">번호 받기</button>
+                <button id="predict-btn" class="btn btn-primary" aria-label="스트레칭 후 번호받기">스트레칭 후 번호받기</button>
             </div>
         </main>
 
@@ -48,8 +48,31 @@
                 </p>
             </div>
         </div>
+
+        <!-- 스트레칭 모달 -->
+        <div id="stretch-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="stretch-modal-title">
+            <div class="modal-content">
+                <h3 id="stretch-modal-title">스트레칭 후 번호받기</h3>
+                <p class="modal-desc">아래 영상을 1분 시청하면 [스트레칭 완료] 버튼이 활성화됩니다.</p>
+                <div id="stretch-video-wrap">
+                    <!-- YouTube Player가 있으면 이 div에 주입됨 -->
+                    <div id="yt-player" class="yt-player" aria-label="스트레칭 유튜브 영상"></div>
+                    <!-- YouTube 사용이 불가할 때를 위한 로컬 비디오 대체 -->
+                    <video id="fallback-video" class="fallback-video" playsinline></video>
+                </div>
+                <div class="modal-timer">
+                    <span id="watch-remaining">남은 시청 시간: 60초</span>
+                </div>
+                <div class="modal-actions">
+                    <button id="stretch-close" class="btn" aria-label="닫기">닫기</button>
+                    <button id="stretch-done" class="btn btn-primary" aria-label="스트레칭 완료" disabled>스트레칭 완료</button>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- YouTube IFrame API (가능 시 사용) -->
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script src="script.js"></script>
 </body>
 </html>
