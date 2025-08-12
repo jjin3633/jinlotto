@@ -11,6 +11,9 @@
 - **📈 고급 분석**: 계절별, 월별, 주별 패턴 분석
 - **🎯 번호 추천**: 5세트 번호 자동 생성
 - **🌐 실시간 데이터**: 최신 회차 정보 자동 업데이트
+- **🧠 매칭/알림**: 전 회차와 예측 번호 매칭 후 1~5등 집계 슬랙 알림
+- **🧘 스트레칭 유도 UX**: 유튜브 모달에서 60초 시청 후에만 번호 발급(40초 워밍업)
+- **💬 의견 남기기**: 우측 상단 버튼 → 모달 입력 → 슬랙으로 의견 수집
 
 ## 🛠️ 기술 스택
 
@@ -37,7 +40,7 @@
 
 ### Infra/DevOps
 - **GitHub Actions**: Keep-Alive(10분), Weekly Update(월 09:00 KST)
-- **Slack Incoming Webhooks**: 매칭 요약(1~3등) 알림
+- **Slack Incoming Webhooks**: 매칭 요약(1~5등), 서버 시작/종료, 예측 실패 로그, 사용자 의견 수집 알림
 
 ## 📁 프로젝트 구조
 
@@ -136,7 +139,7 @@ http://localhost:8000
 - `POST /api/data/update` - 데이터 업데이트
  - `POST /api/data/sync-db` - CSV → DB(draws) 전체 백필
  - `POST /api/data/sync-db-range?start_draw=&end_draw=` - CSV → DB 구간 백필
- - `POST /api/data/match-latest` - 최신 회차 매칭 강제 + Slack 요약 발송
+ - `POST /api/data/match-latest` - 최신 회차 매칭 강제 + Slack 요약 발송(1~5등)
 
 ### 분석 API
 - `GET /api/analysis/comprehensive` - 종합 분석
@@ -146,6 +149,9 @@ http://localhost:8000
 ### 예측 API
 - `POST /api/predict` - 번호 예측 (5세트)
 
+### 기타/피드백 API
+- `POST /api/feedback` - 사용자 의견 수집 → 슬랙 전송
+
 ### 디버그 API(운영 전 비활성화 권장)
 - `GET /api/debug/db-conn` - DB 연결 확인
 - `GET /api/debug/db-stats` - 테이블 카운트 확인
@@ -154,11 +160,17 @@ http://localhost:8000
 
 1) 매주 월요일 09:00 KST:
 - GitHub Actions가 `POST /api/data/update` 호출
-- 최신 회차를 `draws`에 upsert 후, 예측과 매칭 → Slack에 1~3등 요약 발송
+- 최신 회차를 `draws`에 upsert 후, 예측과 매칭 → Slack에 1~5등 요약 발송
 
 2) 매칭 필터 규칙:
 - `generated_for <= draw_date`
 - `created_at <= draw_date 20:00 KST(= UTC 11:00)`
+
+3) 서버 라이프사이클/장애 알림:
+- 시작 시: "🚀 JinLotto 서버 시작" 슬랙 전송(중복 방지 처리)
+- 종료 시: "🛑 JinLotto 서버 종료" 슬랙 전송
+- 전역 예외: "❗ 서버 오류 발생: ..." 슬랙 전송
+- 예측 실패: `/api/predict` 예외 시 상세 원인 슬랙 전송
 
 ## 🎯 사용 예시
 
@@ -174,12 +186,30 @@ curl -X POST "http://localhost:8000/api/predict" \
 curl "http://localhost:8000/api/data/summary"
 ```
 
+### 사용자 의견 전송
+```bash
+curl -X POST "http://localhost:8000/api/feedback" \
+     -H "Content-Type: application/json" \
+     -d '{"message": "페이지 상단 여백을 조금 줄여주세요"}'
+```
+
 ## 📈 성능 지표
 
 - **페이지 로딩**: < 3초
 - **API 응답**: < 2초
 - **번호 생성**: < 1초
 - **동시 사용자**: 100+ 지원
+
+### 추가 최적화
+- DB 인덱스 권장: `predictions(generated_for)`, `predictions(created_at)`, `matches(draw_number)`, `matches(prediction_id)`
+- 워밍업: 스트레칭 모달 시청 40초 시점에 `/api/health` 1회 호출로 콜드스타트 완화
+
+## 🖥️ 프론트 UX 요약
+- 메인 버튼: "스트레칭 후 번호받기"
+- 유튜브 모달: 60초 시청 시에만 [스트레칭 완료] 활성화(중간 40초에 서버 워밍업)
+- 완료 시: 번호 발급 및 버튼 비활성화(하루 1회)
+- 결과 영역 하단: "🍀 행운을 빌어요!"
+- 우측 상단: "의견 남기기" 버튼 → 모달 입력 → 슬랙 알림
 
 ## 🔧 개발 가이드
 
