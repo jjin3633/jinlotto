@@ -564,6 +564,23 @@ async def predict_numbers(req: Request, request: PredictionRequest, db: Session 
 
     except Exception as e:
         logger.error(f"번호 예측 중 오류: {e}")
+        # 슬랙 알림: 로또 번호 분석 실패 로그 전송
+        try:
+            user_key_for_log = None
+            try:
+                user_key_for_log = req.cookies.get('jl_uid')
+            except Exception:
+                user_key_for_log = None
+            post_to_slack(
+                (
+                    "❗ 로또 번호 분석 실패\n"
+                    f"- endpoint: /api/predict\n"
+                    f"- user: {user_key_for_log or 'unknown'}\n"
+                    f"- error: {str(e)}"
+                )
+            )
+        except Exception:
+            pass
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/predict/test")
