@@ -165,7 +165,8 @@ body {
     z-index: 2000;
 }
 .modal-content {
-    width: min(880px, 92vw);
+    width: auto;
+    max-width: 720px;
     background: #ffffff;
     border-radius: 16px;
     padding: 20px 20px 16px;
@@ -175,8 +176,11 @@ body {
     margin-bottom: 8px;
 }
 .modal-desc { color: #555; margin-bottom: 12px; }
-#stretch-video-wrap { position: relative; background: #000; border-radius: 10px; overflow: hidden; }
-.yt-player { width: 100%; height: min(480px, 58vw); background: #000; display: block; }
+#stretch-video-wrap { position: relative; background: #000; border-radius: 10px; overflow: hidden; display: flex; justify-content: center; }
+.yt-player { width: 640px; height: 390px; background: #000; display: block; }
+@media (max-width: 720px) {
+  .yt-player { width: 92vw; height: calc(92vw * 9 / 16); }
+}
 .modal-timer { margin: 10px 0 0; font-weight: 600; color: #333; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
 

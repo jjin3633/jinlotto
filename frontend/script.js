@@ -89,6 +89,8 @@ function initPlayerOrFallback() {
     if (window.YT && window.YT.Player && playerReady && ytContainer) {
         ytPlayer = new YT.Player('yt-player', {
             videoId: YT_VIDEO_ID,
+            height: '390',
+            width: '640',
             playerVars: { 'autoplay': 1, 'controls': 1, 'playsinline': 1 },
             events: {
                 'onStateChange': onPlayerStateChange
