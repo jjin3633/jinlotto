@@ -165,6 +165,7 @@ body {
     z-index: 2000;
 }
 .modal-content {
+    position: relative; /* X 버튼 기준 위치 */
     width: auto;
     max-width: 720px;
     background: #ffffff;
@@ -181,7 +182,8 @@ body {
     font-size: 24px;
     line-height: 1;
     cursor: pointer;
-    color: #666;
+    color: #333;
+    z-index: 10; /* 플레이어 위에 표시 */
 }
 .modal-close-x:hover { color: #000; }
 .modal-content h3 {
@@ -189,6 +191,7 @@ body {
 }
 .modal-desc { color: #555; margin-bottom: 12px; }
 #stretch-video-wrap { position: relative; background: #000; border-radius: 10px; overflow: hidden; display: flex; justify-content: center; }
+.modal-content #stretch-video-wrap { z-index: 1; }
 .yt-player { width: 640px; height: 390px; background: #000; display: block; }
 @media (max-width: 720px) {
   .yt-player { width: 92vw; height: calc(92vw * 9 / 16); }
