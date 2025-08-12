@@ -20,8 +20,8 @@ class Prediction(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_key = Column(String(64), ForeignKey("users.user_key"), nullable=False, index=True)
-    generated_for = Column(Date, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    generated_for = Column(Date, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     set_index = Column(Integer, nullable=False)
     numbers = Column(JSON, nullable=False)  # [n1..n6]
     source = Column(String(32), default="daily-fixed", nullable=False)
@@ -44,7 +44,7 @@ class Match(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     prediction_id = Column(Integer, ForeignKey("predictions.id"), nullable=False, index=True)
-    draw_number = Column(Integer, nullable=False)
+    draw_number = Column(Integer, nullable=False, index=True)
     match_count = Column(Integer, nullable=False)
     bonus_match = Column(Boolean, default=False, nullable=False)
     rank = Column(Integer, nullable=False)
