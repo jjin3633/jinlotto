@@ -542,6 +542,17 @@ body {
     font-family: inherit;
 }
 
+/* 의견 모달을 스트레칭 모달과 동일 폭(640px)로 정렬 */
+#feedback-modal .modal-desc,
+#feedback-modal h3,
+#feedback-modal .feedback-body,
+#feedback-modal .modal-actions {
+    width: 640px;
+    max-width: 92vw;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* 고정폭 제거: 컨테이너 폭에 맞춰 1:1 비율로 확장 */
 
 /* 스크롤바 스타일 */
