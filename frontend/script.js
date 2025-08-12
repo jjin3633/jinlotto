@@ -23,6 +23,7 @@ let ytPlayer = null;
 let watchTimer = null;
 let secondsWatched = 0;
 let playerReady = false;
+let warmedUp = false;
 // 사용할 유튜브 영상 목록(무작위 선택)
 const YT_VIDEO_IDS = [
     'RUGuHL0-Yug', // https://www.youtube.com/watch?v=RUGuHL0-Yug
@@ -81,6 +82,7 @@ function resetStretchState() {
     secondsWatched = 0;
     if (watchRemaining) watchRemaining.textContent = `남은 시청 시간: 60초`;
     if (stretchDoneBtn) stretchDoneBtn.disabled = true;
+    warmedUp = false;
 }
 
 function initPlayerOrFallback() {
@@ -126,6 +128,11 @@ function startWatchTimer() {
         secondsWatched += 1;
         updateWatchUI();
         checkEnableDone();
+        // 50초 경과(남은 10초) 시점에 1회만 워밍업: 서버/DB 콜드스타트 방지
+        if (!warmedUp && secondsWatched >= 50) {
+            warmedUp = true;
+            warmUpServer();
+        }
         if (secondsWatched >= 60) {
             stopWatchTimer();
         }
@@ -156,6 +163,19 @@ function cleanupPlayerAndTimer() {
         try { ytPlayer.destroy(); } catch (e) {}
     }
     ytPlayer = null;
+}
+
+// 경량 워밍업 호출: /api/health 를 짧은 타임아웃으로 호출
+function warmUpServer() {
+    try {
+        const controller = new AbortController();
+        const t = setTimeout(() => controller.abort(), 5000);
+        fetch(`${API_BASE_URL}/health`, { method: 'GET', signal: controller.signal })
+            .then(() => clearTimeout(t))
+            .catch(() => clearTimeout(t));
+    } catch (e) {
+        // 무시: 워밍업 실패해도 플로우에는 영향 없음
+    }
 }
 
 // 예측 처리
