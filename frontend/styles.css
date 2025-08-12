@@ -197,7 +197,7 @@ body {
   .yt-player { width: 92vw; height: calc(92vw * 9 / 16); }
 }
 .modal-timer { margin: 10px 0 0; font-weight: 600; color: #333; }
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
+.modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
 
 /* 예측 컨트롤 */
 .prediction-controls {
