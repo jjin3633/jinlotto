@@ -522,7 +522,7 @@ body {
     position: absolute; /* 컨테이너 패딩/마진에 맞춰 정렬 */
     top: 16px;
     right: 20px; /* 컨테이너 padding과 일치 */
-    z-index: 2100;
+    z-index: 60; /* 메인(50)보다 위, 모달(2000)보다 아래 */
     padding: 10px 16px;
     border-radius: 20px;
     background: #111111;
