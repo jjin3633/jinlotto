@@ -5,6 +5,7 @@ from typing import Dict, Any, List
 from datetime import datetime
 import logging
 import pandas as pd
+from pydantic import BaseModel
 
 from ..models.lotto_models import (
     PredictionRequest, 
@@ -743,3 +744,40 @@ async def get_disclaimer():
         message="고지사항을 조회했습니다.",
         data=disclaimer
     )
+
+# ----------------------------
+# 의견(feedback) 수집 및 Slack 전송
+# ----------------------------
+
+class FeedbackIn(BaseModel):
+    message: str
+
+
+@router.post("/feedback")
+async def submit_feedback(req: Request, payload: FeedbackIn):
+    """사용자 의견을 받아 Slack으로 전달합니다."""
+    try:
+        user_key = None
+        try:
+            user_key = req.cookies.get('jl_uid')
+        except Exception:
+            user_key = None
+
+        msg = payload.message.strip() if payload and payload.message else ""
+        if not msg:
+            return APIResponse(success=False, message="메시지가 비어 있습니다.")
+
+        text = (
+            "💬 사용자 의견 접수\n"
+            f"- user: {user_key or 'unknown'}\n"
+            f"- message: {msg}"
+        )
+        try:
+            post_to_slack(text)
+        except Exception as e:
+            logger.error(f"피드백 Slack 전송 실패: {e}")
+            # 사용자에겐 성공 응답 유지(사용자 경험 보호)
+        return APIResponse(success=True, message="의견이 접수되었습니다. 감사합니다!")
+    except Exception as e:
+        logger.error(f"피드백 처리 중 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

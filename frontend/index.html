@@ -19,6 +19,9 @@
                 <button id="predict-btn" class="btn btn-primary" aria-label="스트레칭 후 번호받기">스트레칭 후 번호받기</button>
             </div>
         </main>
+        
+        <!-- 우측 상단 의견 남기기 버튼 -->
+        <button id="feedback-open" class="feedback-fab" aria-label="의견 남기기">의견 남기기</button>
 
         <!-- 고정(스티키) 히어로 아래쪽에 결과 표시 영역 -->
         <section id="prediction-section" class="prediction-section" style="display: none;">
@@ -26,6 +29,7 @@
                 <h3>추천 번호 세트</h3>
                 <div id="number-sets" class="number-sets"></div>
                 <div id="prediction-reasoning" class="reasoning"></div>
+                <div class="good-luck" aria-live="polite">행운을 빌어요!</div>
             </div>
         </section>
 
@@ -53,7 +57,7 @@
         <div id="stretch-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="stretch-modal-title">
             <div class="modal-content">
                 <button id="stretch-close" class="modal-close-x" aria-label="닫기" type="button">&times;</button>
-                <h3 id="stretch-modal-title">스트레칭 후 번호받기</h3>
+                <h3 id="stretch-modal-title">스트레칭 후 번호 받기</h3>
                 <p class="modal-desc">아래 영상을 1분 시청하면 로또 번호를 받을 수 있어요!</p>
                 <div id="stretch-video-wrap">
                     <!-- YouTube Player가 이 div에 주입됩니다 (IFrame API) -->
@@ -64,6 +68,21 @@
                 </div>
                 <div class="modal-actions">
                     <button id="stretch-done" class="btn btn-primary" aria-label="스트레칭 완료" disabled>스트레칭 완료</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 의견 남기기 모달 -->
+        <div id="feedback-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="feedback-modal-title">
+            <div class="modal-content">
+                <button id="feedback-close" class="modal-close-x" aria-label="닫기" type="button">&times;</button>
+                <h3 id="feedback-modal-title">의견 남기기</h3>
+                <p class="modal-desc">서비스 개선을 위한 소중한 의견을 남겨주세요.</p>
+                <div class="feedback-body">
+                    <textarea id="feedback-input" class="feedback-input" rows="5" placeholder="의견을 입력해 주세요"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button id="feedback-send" class="btn btn-primary" aria-label="전송">전송</button>
                 </div>
             </div>
         </div>

@@ -24,6 +24,12 @@ let watchTimer = null;
 let secondsWatched = 0;
 let playerReady = false;
 let warmedUp = false;
+// 피드백 모달 관련
+const feedbackOpenBtn = document.getElementById('feedback-open');
+const feedbackModal = document.getElementById('feedback-modal');
+const feedbackCloseBtn = document.getElementById('feedback-close');
+const feedbackSendBtn = document.getElementById('feedback-send');
+const feedbackInput = document.getElementById('feedback-input');
 // 사용할 유튜브 영상 목록(무작위 선택)
 const YT_VIDEO_IDS = [
     'RUGuHL0-Yug', // https://www.youtube.com/watch?v=RUGuHL0-Yug
@@ -42,6 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
     predictBtn.addEventListener('click', openStretchModal);
     if (stretchCloseBtn) stretchCloseBtn.addEventListener('click', handleStretchClose);
     if (stretchDoneBtn) stretchDoneBtn.addEventListener('click', handleStretchDone);
+    if (feedbackOpenBtn) feedbackOpenBtn.addEventListener('click', openFeedbackModal);
+    if (feedbackCloseBtn) feedbackCloseBtn.addEventListener('click', closeFeedbackModal);
+    if (feedbackSendBtn) feedbackSendBtn.addEventListener('click', sendFeedback);
 });
 
 // 유튜브 API 로드 콜백 (전역 요구)
@@ -175,6 +184,41 @@ function warmUpServer() {
             .catch(() => clearTimeout(t));
     } catch (e) {
         // 무시: 워밍업 실패해도 플로우에는 영향 없음
+    }
+}
+
+// 피드백 모달
+function openFeedbackModal() {
+    if (feedbackModal) {
+        feedbackModal.classList.remove('hidden');
+        feedbackModal.setAttribute('aria-hidden', 'false');
+        if (feedbackInput) feedbackInput.value = '';
+    }
+}
+function closeFeedbackModal() {
+    if (feedbackModal) {
+        feedbackModal.classList.add('hidden');
+        feedbackModal.setAttribute('aria-hidden', 'true');
+    }
+}
+async function sendFeedback() {
+    const msg = (feedbackInput && feedbackInput.value ? feedbackInput.value.trim() : '');
+    if (!msg) { alert('의견을 입력해 주세요.'); return; }
+    try {
+        const res = await fetch(`${API_BASE_URL}/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            alert('의견이 접수되었습니다. 감사합니다!');
+            closeFeedbackModal();
+        } else {
+            alert('전송에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+        }
+    } catch (e) {
+        alert('네트워크 오류로 전송에 실패했습니다.');
     }
 }
 

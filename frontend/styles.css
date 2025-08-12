@@ -236,6 +236,12 @@ body {
 .prediction-results {
     margin-top: 30px;
 }
+.good-luck {
+    margin-top: 12px;
+    text-align: center;
+    font-weight: 700;
+    color: #0080ff;
+}
 
 .number-sets {
     display: grid;
@@ -506,6 +512,33 @@ body {
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+/* 의견 남기기 FAB 버튼 */
+.feedback-fab {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 2100;
+    padding: 10px 16px;
+    border-radius: 20px;
+    background: #111111;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+.feedback-fab:hover { background: #000000; }
+
+/* 의견 모달 입력 */
+.feedback-body { margin-top: 10px; }
+.feedback-input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 10px 12px;
+    resize: vertical;
+    font-family: inherit;
 }
 
 /* 고정폭 제거: 컨테이너 폭에 맞춰 1:1 비율로 확장 */
