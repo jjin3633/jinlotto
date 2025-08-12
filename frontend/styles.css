@@ -165,6 +165,8 @@ body {
     justify-content: center;
     z-index: 2000;
 }
+/* 의견 모달은 메인 화면과 동일한 z-index로 표시 */
+#feedback-modal { z-index: 50; }
 .modal-content {
     position: relative; /* X 버튼 기준 위치 */
     width: auto;
