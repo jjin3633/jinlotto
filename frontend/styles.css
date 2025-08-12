@@ -239,6 +239,14 @@ body {
 .prediction-results {
     margin-top: 30px;
 }
+.prediction-section {
+    max-width: 560px; /* 1세트 기준 컴팩트 */
+    margin: 0 auto;
+}
+.prediction-results h3 {
+    text-align: center;
+    font-size: 1.6rem; /* 세트 제목(1.2rem)보다 크게 */
+}
 .good-luck {
     margin-top: 12px;
     text-align: center;
@@ -248,7 +256,7 @@ body {
 
 .number-sets {
     display: grid;
-    grid-template-columns: repeat(3, minmax(260px, 1fr));
+    grid-template-columns: 1fr; /* 1세트 중앙 배치 */
     gap: 20px;
     margin-bottom: 30px;
     margin-top: 30px;
