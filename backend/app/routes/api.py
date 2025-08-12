@@ -234,11 +234,16 @@ async def update_latest_data(db: Session = Depends(get_session)):
                 draw_obj.bonus_number = bonus
             db.commit()
 
-            # 예측 매칭 및 Slack 요약(1~3등만)
+            # 예측 매칭 및 Slack 요약(1~5등)
             counts = evaluate_matches_for_draw(db, draw_number)
             try:
                 post_to_slack(
-                    f"📣 회차 {draw_number} 결과 요약\n1등: {counts.get(1,0)}\n2등: {counts.get(2,0)}\n3등: {counts.get(3,0)}"
+                    f"📣 회차 {draw_number} 결과 요약\n"
+                    f"1등: {counts.get(1,0)}\n"
+                    f"2등: {counts.get(2,0)}\n"
+                    f"3등: {counts.get(3,0)}\n"
+                    f"4등: {counts.get(4,0)}\n"
+                    f"5등: {counts.get(5,0)}"
                 )
             except Exception:
                 pass
@@ -269,7 +274,12 @@ async def match_latest_and_notify(db: Session = Depends(get_session)):
         counts = evaluate_matches_for_draw(db, draw_number)
         try:
             post_to_slack(
-                f"📣 회차 {draw_number} 결과 요약\n1등: {counts.get(1,0)}\n2등: {counts.get(2,0)}\n3등: {counts.get(3,0)}"
+                f"📣 회차 {draw_number} 결과 요약\n"
+                f"1등: {counts.get(1,0)}\n"
+                f"2등: {counts.get(2,0)}\n"
+                f"3등: {counts.get(3,0)}\n"
+                f"4등: {counts.get(4,0)}\n"
+                f"5등: {counts.get(5,0)}"
             )
         except Exception:
             pass

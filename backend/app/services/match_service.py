@@ -32,9 +32,9 @@ def _compute_rank(user_numbers: List[int], draw_numbers: List[int], bonus_number
 def evaluate_matches_for_draw(db: Session, draw_number: int) -> Dict[int, int]:
     draw = db.query(Draw).filter(Draw.draw_number == draw_number).first()
     if not draw:
-        return {1: 0, 2: 0, 3: 0}
+        return {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 
-    counts = {1: 0, 2: 0, 3: 0}
+    counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
 
     # 토요일 20:00 KST(= UTC 11:00) 이전에 생성된 예측만 매칭
     cutoff_utc = datetime(
