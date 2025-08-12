@@ -137,8 +137,8 @@ function startWatchTimer() {
         secondsWatched += 1;
         updateWatchUI();
         checkEnableDone();
-        // 50초 경과(남은 10초) 시점에 1회만 워밍업: 서버/DB 콜드스타트 방지
-        if (!warmedUp && secondsWatched >= 50) {
+        // 40초 경과(남은 20초) 시점에 1회만 워밍업: 서버/DB 콜드스타트 방지
+        if (!warmedUp && secondsWatched >= 40) {
             warmedUp = true;
             warmUpServer();
         }
