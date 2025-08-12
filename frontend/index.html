@@ -55,10 +55,8 @@
                 <h3 id="stretch-modal-title">스트레칭 후 번호받기</h3>
                 <p class="modal-desc">아래 영상을 1분 시청하면 [스트레칭 완료] 버튼이 활성화됩니다.</p>
                 <div id="stretch-video-wrap">
-                    <!-- YouTube Player가 있으면 이 div에 주입됨 -->
+                    <!-- YouTube Player가 이 div에 주입됩니다 (IFrame API) -->
                     <div id="yt-player" class="yt-player" aria-label="스트레칭 유튜브 영상"></div>
-                    <!-- YouTube 사용이 불가할 때를 위한 로컬 비디오 대체 -->
-                    <video id="fallback-video" class="fallback-video" playsinline></video>
                 </div>
                 <div class="modal-timer">
                     <span id="watch-remaining">남은 시청 시간: 60초</span>

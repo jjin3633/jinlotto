@@ -18,7 +18,6 @@ const stretchCloseBtn = document.getElementById('stretch-close');
 const stretchDoneBtn = document.getElementById('stretch-done');
 const watchRemaining = document.getElementById('watch-remaining');
 const ytContainer = document.getElementById('yt-player');
-const fallbackVideo = document.getElementById('fallback-video');
 
 let ytPlayer = null;
 let watchTimer = null;
@@ -95,13 +94,8 @@ function initPlayerOrFallback() {
                 'onStateChange': onPlayerStateChange
             }
         });
-        if (fallbackVideo) fallbackVideo.style.display = 'none';
     } else {
-        // 폴백: 로컬/빈 비디오로 1분 타이머만 진행
-        if (fallbackVideo) {
-            fallbackVideo.src = '';
-            fallbackVideo.style.display = 'block';
-        }
+        // IFrame API가 아직 준비 전이면 1분 타이머만 진행
         startWatchTimer();
     }
 }

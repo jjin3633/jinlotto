@@ -176,7 +176,7 @@ body {
 }
 .modal-desc { color: #555; margin-bottom: 12px; }
 #stretch-video-wrap { position: relative; background: #000; border-radius: 10px; overflow: hidden; }
-.yt-player, .fallback-video { width: 100%; height: min(480px, 58vw); background: #000; display: block; }
+.yt-player { width: 100%; height: min(480px, 58vw); background: #000; display: block; }
 .modal-timer { margin: 10px 0 0; font-weight: 600; color: #333; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
 
