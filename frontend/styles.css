@@ -53,19 +53,19 @@ body {
 .site-logo {
     height: auto;
     /* 약 50% 상향 */
-    width: clamp(180px, 45vw, 300px);
+    width: clamp(180px, 45vw, 250px);
     max-width: 80vw;
 }
 
 /* 반응형: 화면이 줄어들수록 로고를 단계적으로 축소 */
 @media (max-width: 1024px) {
-    .site-logo { width: clamp(165px, 42vw, 300px); }
+    .site-logo { width: clamp(165px, 42vw, 250px); }
 }
 @media (max-width: 768px) {
-    .site-logo { width: clamp(150px, 54vw, 270px); }
+    .site-logo { width: clamp(150px, 54vw, 200px); }
 }
 @media (max-width: 480px) {
-    .site-logo { width: clamp(135px, 72vw, 240px); }
+    .site-logo { width: clamp(135px, 72vw, 200px); }
 }
 
 .header h1 {
@@ -522,7 +522,7 @@ body {
     z-index: 60; /* 메인(50)보다 위, 모달(2000)보다 아래 */
     padding: 10px 16px;
     border-radius: 20px;
-    background: #111111;
+    background: #0080ff;
     color: #ffffff;
     border: none;
     cursor: pointer;
