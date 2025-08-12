@@ -283,10 +283,7 @@ body {
     border: 1px solid #e6f2ff;
 }
 
-.number-set h4 {
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-}
+.number-set h4 { display: none; margin: 0; }
 
 .numbers {
     display: flex;
