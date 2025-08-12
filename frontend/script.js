@@ -185,6 +185,7 @@ async function handlePrediction() {
     
     showLoading(true);
     predictBtn.disabled = true;
+    let predictionSucceeded = false;
     
     try {
         const controller = new AbortController();
@@ -207,6 +208,7 @@ async function handlePrediction() {
         
         if (response.ok && data.success) {
             displayPredictionResults(data.data);
+            predictionSucceeded = true;
         } else {
             showError('예측에 실패했습니다. 다시 시도해주세요.');
         }
@@ -219,7 +221,9 @@ async function handlePrediction() {
         }
     } finally {
         showLoading(false);
-        predictBtn.disabled = false;
+        // 성공 시에는 버튼을 비활성화 상태로 유지(하루 1회)
+        // 실패 시에만 다시 시도할 수 있도록 활성화
+        predictBtn.disabled = predictionSucceeded ? true : false;
     }
 }
 
