@@ -24,6 +24,17 @@ let ytPlayer = null;
 let watchTimer = null;
 let secondsWatched = 0;
 let playerReady = false;
+// 사용할 유튜브 영상 목록(무작위 선택)
+const YT_VIDEO_IDS = [
+    'RUGuHL0-Yug', // https://www.youtube.com/watch?v=RUGuHL0-Yug
+    'TK-svYT9Qqg', // https://www.youtube.com/watch?v=TK-svYT9Qqg
+    'WXtLkFVS2QY', // https://www.youtube.com/watch?v=WXtLkFVS2QY
+    'XvG6EZTGYjs', // https://www.youtube.com/watch?v=XvG6EZTGYjs
+    'Qm1Q8YYop18', // https://www.youtube.com/watch?v=Qm1Q8YYop18
+];
+function pickRandomVideoId() {
+    return YT_VIDEO_IDS[Math.floor(Math.random() * YT_VIDEO_IDS.length)];
+}
 
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
@@ -74,8 +85,8 @@ function resetStretchState() {
 }
 
 function initPlayerOrFallback() {
-    // 유튜브 사용 시: 공개 스트레칭 영상 ID 예시(필요시 교체)
-    const YT_VIDEO_ID = 'dQw4w9WgXcQ';
+    // 유튜브 사용 시: 준비된 리스트에서 무작위 선택
+    const YT_VIDEO_ID = pickRandomVideoId();
     if (window.YT && window.YT.Player && playerReady && ytContainer) {
         ytPlayer = new YT.Player('yt-player', {
             videoId: YT_VIDEO_ID,
