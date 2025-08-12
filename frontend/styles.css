@@ -16,6 +16,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    position: relative; /* 내부 절대배치 요소 기준점 */
 }
 
 /* 기본: 결과/분석/고지/상태 섹션은 숨김 (버튼 클릭 시 표시) */
@@ -516,9 +517,9 @@ body {
 
 /* 의견 남기기 FAB 버튼 */
 .feedback-fab {
-    position: fixed;
+    position: absolute; /* 컨테이너 패딩/마진에 맞춰 정렬 */
     top: 16px;
-    right: 16px;
+    right: 20px; /* 컨테이너 padding과 일치 */
     z-index: 2100;
     padding: 10px 16px;
     border-radius: 20px;
