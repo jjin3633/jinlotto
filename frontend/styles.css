@@ -29,7 +29,7 @@ body {
 /* 헤더 */
 /* 구글 스타일 히어로 영역: 화면 중앙보다 살짝 위 */
 .hero {
-    margin-top: 240px;
+    margin-top: 180px;
     margin-bottom : 40px;
     display: flex;
     flex-direction: column;
