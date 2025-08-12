@@ -241,7 +241,7 @@ async function handlePrediction() {
             },
             body: JSON.stringify({
                 method: method,
-                num_sets: 5,
+                num_sets: 1,
                 include_bonus: false
             }),
             signal: controller.signal

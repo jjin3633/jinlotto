@@ -255,11 +255,7 @@ body {
     justify-items: center;
 }
 
-/* 데스크톱에서 5세트일 때 2번째 줄을 균형감 있게 배치 */
-@media (min-width: 900px) {
-    .number-sets .number-set:nth-child(4) { grid-column: 1; }
-    .number-sets .number-set:nth-child(5) { grid-column: 3; }
-}
+/* 1세트 기준: 특별한 재배치 없음 */
 
 /* 반응형: 태블릿은 2열, 모바일은 1열 */
 @media (max-width: 899px) {
