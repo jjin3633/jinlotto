@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Tuple, Any
@@ -13,6 +14,11 @@ class AnalysisService:
     
     def __init__(self):
         self.number_columns = ['number_1', 'number_2', 'number_3', 'number_4', 'number_5', 'number_6']
+        # 균형형 기본값(환경변수로 조정 가능)
+        try:
+            self.hot_cold_window = int(os.getenv('HOT_COLD_WINDOW', '40'))
+        except Exception:
+            self.hot_cold_window = 40
     
     def analyze_frequency(self, df: pd.DataFrame) -> Dict[int, int]:
         """번호별 출현 빈도 분석"""
@@ -24,8 +30,10 @@ class AnalysisService:
         frequency = Counter(all_numbers)
         return {int(k): int(v) for k, v in frequency.items()}
     
-    def find_hot_cold_numbers(self, df: pd.DataFrame, recent_draws: int = 50) -> Tuple[List[int], List[int]]:
+    def find_hot_cold_numbers(self, df: pd.DataFrame, recent_draws: int = None) -> Tuple[List[int], List[int]]:
         """최근 회차 기준 핫/콜드 번호 분석"""
+        if recent_draws is None:
+            recent_draws = self.hot_cold_window
         recent_df = df.tail(recent_draws)
         recent_frequency = self.analyze_frequency(recent_df)
         

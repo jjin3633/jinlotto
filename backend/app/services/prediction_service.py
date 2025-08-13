@@ -1,14 +1,36 @@
+import os
+import json
+import math
+import random
 import pandas as pd
 import numpy as np
 from typing import List, Dict, Any, Tuple
 from datetime import datetime, timezone, timedelta
-import os, json
 import logging
 """
 무거운 ML 라이브러리(sklearn)는 지연 임포트로 전환하여
 비-ML 경로(statistical, test)가 빠르게 응답하도록 최적화합니다.
 """
-import random
+def _get_env_float(name: str, default_value: float) -> float:
+    try:
+        return float(os.getenv(name, default_value))
+    except Exception:
+        return float(default_value)
+
+def _get_env_int(name: str, default_value: int) -> int:
+    try:
+        return int(os.getenv(name, default_value))
+    except Exception:
+        return int(default_value)
+
+def _get_env_bool(name: str, default_value: bool) -> bool:
+    try:
+        v = os.getenv(name)
+        if v is None:
+            return default_value
+        return v.strip().lower() in ('1','true','yes','y','on')
+    except Exception:
+        return default_value
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +43,27 @@ class PredictionService:
         self._features_cache_by_date: Dict[str, pd.DataFrame] = {}
         self.number_columns = ['number_1', 'number_2', 'number_3', 'number_4', 'number_5', 'number_6']
         self._last_warmup_date: str | None = None
+        # 균형형 기본 파라미터 (환경변수로 오버라이드)
+        self.conf_base = _get_env_float('CONF_BASE', 0.40)
+        self.conf_min = _get_env_float('CONF_MIN', 0.40)
+        self.conf_max = _get_env_float('CONF_MAX', 0.80)
+        self.conf_w_consensus = _get_env_float('CONF_W_CONSENSUS', 0.30)
+        self.conf_w_hot = _get_env_float('CONF_W_HOT', 0.10)
+        self.merge_max_union_fill = _get_env_int('MERGE_MAX_UNION_FILL', 2)
+        self.enforce_odd_even = _get_env_bool('ENFORCE_ODD_EVEN_BALANCE', True)
+        self.enforce_range_coverage = _get_env_bool('ENFORCE_RANGE_COVERAGE', True)
+        self.max_consecutive = _get_env_int('MAX_CONSECUTIVE', 2)
+        self.hot_top_k = _get_env_int('HOT_TOP_K', 8)
+        self.cold_top_k = _get_env_int('COLD_TOP_K', 8)
+        self.freq_decay_half_life = _get_env_int('FREQ_DECAY_HALF_LIFE_DRAWS', 80)
+        self.deterministic_seed = _get_env_bool('DETERMINISTIC_SEED', True)
+        self.enable_ml = _get_env_bool('ENABLE_ML', True)
     
     def statistical_prediction(self, df: pd.DataFrame, num_sets: int = 5) -> List[List[int]]:
         """통계 기반 번호 예측"""
         try:
-            # 번호별 출현 빈도 계산
-            frequency = self._calculate_frequency(df)
+            # 번호별 출현 빈도 계산(시간 감쇠 가중 포함)
+            frequency = self._calculate_frequency(df, decay_half_life=self.freq_decay_half_life)
             
             # 가중치 기반 선택 (빈도가 높을수록 선택 확률 증가)
             weights = [frequency.get(i, 1) for i in range(1, 46)]
@@ -68,7 +105,7 @@ class PredictionService:
 
             # 포지션 모델 6개를 1회만 학습하여 캐시에 저장 후 재사용
             # 요청 경로에서는 캐시가 없으면 학습을 건너뛰어 첫 응답 지연을 방지
-            if today_key not in self._models_cache_by_date:
+            if today_key not in self._models_cache_by_date or not self.enable_ml:
                 return self.statistical_prediction(df, num_sets)
 
             models_for_today = self._models_cache_by_date.get(today_key, [None]*6)
@@ -96,7 +133,7 @@ class PredictionService:
             predictions: List[List[int]] = [base_set]
 
             # 빈도 기반 가중치로 경량 보강 세트 생성
-            frequency = self._calculate_frequency(df)
+            frequency = self._calculate_frequency(df, decay_half_life=self.freq_decay_half_life)
             weights = [frequency.get(i, 1) for i in range(1, 46)]
             for _ in range(max(0, num_sets - 1)):
                 chosen = set(base_set)
@@ -135,12 +172,12 @@ class PredictionService:
                 ml_sets = stat_sets
 
             # 3) 빈도 상위/하위(핫/콜드) 계산
-            frequency = self._calculate_frequency(df)
+            frequency = self._calculate_frequency(df, decay_half_life=self.freq_decay_half_life)
             # 파이썬 int로 보정
             frequency = {int(k): int(v) for k, v in frequency.items()}
             sorted_by_freq = sorted(frequency.items(), key=lambda x: x[1], reverse=True)
-            hot_simple = [int(n) for n, _ in sorted_by_freq[:10]]
-            cold_simple = [int(n) for n, _ in sorted(frequency.items(), key=lambda x: x[1])[:10]]
+            hot_simple = [int(n) for n, _ in sorted_by_freq[: self.hot_top_k]]
+            cold_simple = [int(n) for n, _ in sorted(frequency.items(), key=lambda x: x[1])[: self.cold_top_k]]
 
             # 4) 세트 병합: 교집합 우선 + 가중 샘플 보강
             final_sets: List[List[int]] = []
@@ -160,7 +197,7 @@ class PredictionService:
                 # 남은 칸은: (1) 두 방법 합집합에서 선택, (2) 부족하면 가중 샘플로 채우기
                 remainder = [x for x in sorted(union) if x not in chosen]
                 for x in remainder:
-                    if len(chosen) < 6:
+                    if len(chosen) < 6 and (len(chosen) - len(consensus)) < self.merge_max_union_fill:
                         chosen.append(int(x))
 
                 while len(chosen) < 6:
@@ -169,13 +206,15 @@ class PredictionService:
                         chosen.append(int(cand))
 
                 chosen = sorted(chosen)[:6]
+                # 다양성 제약 적용(홀짝/구간/연속)
+                chosen = self._apply_diversity_constraints(chosen)
                 final_sets.append(chosen)
 
                 # 신뢰도: 교집합 비율 + 핫번호 포함 비율로 가중(0.35~0.75 사이)
                 consensus_ratio = len(consensus) / 6.0
                 hot_hit = sum(1 for x in chosen if x in hot_simple) / 6.0
-                conf = 0.35 + 0.25 * consensus_ratio + 0.15 * hot_hit
-                conf = max(0.35, min(0.75, conf))
+                conf = self.conf_base + self.conf_w_consensus * consensus_ratio + self.conf_w_hot * hot_hit
+                conf = max(self.conf_min, min(self.conf_max, conf))
                 confidence_scores.append(round(conf, 3))
 
             # 5) 근거 문구
@@ -229,6 +268,13 @@ class PredictionService:
                 logger.error(f"일일 추천 로드 실패, 재생성 시도: {e}")
 
         # 생성 (첫 호출은 ML 건너뛰도록 unified_prediction 내부에서 제어)
+        if self.deterministic_seed and user_key:
+            try:
+                seed_base = int(datetime.strptime(date_str, '%Y%m%d').timestamp())
+            except Exception:
+                seed_base = int(self._get_kst_today().timestamp())
+            random.seed(hash((user_key, seed_base)))
+
         unified = self.unified_prediction(df, num_sets)
         result: Dict[str, Any] = {
             'mode': 'daily-fixed',
@@ -271,13 +317,87 @@ class PredictionService:
             logger.error(f"하이브리드 예측 중 오류 발생: {e}")
             return self.statistical_prediction(df, num_sets)
     
-    def _calculate_frequency(self, df: pd.DataFrame) -> Dict[int, int]:
+    def _calculate_frequency(self, df: pd.DataFrame, decay_half_life: int | None = None) -> Dict[int, int]:
         """번호별 출현 빈도 계산"""
-        frequency = {}
-        for col in self.number_columns:
-            for num in df[col]:
-                frequency[num] = frequency.get(num, 0) + 1
-        return frequency
+        frequency: Dict[int, float] = {}
+        if decay_half_life and decay_half_life > 0:
+            # 최근 회차일수록 더 큰 가중치(지수감쇠) 적용
+            n = len(df)
+            if n == 0:
+                return {}
+            # 반감기 기준 감쇠 상수
+            lam = math.log(2) / float(decay_half_life)
+            # 최신 행이 tail(1)이라는 가정 하에, 각 행의 시점 가중치 계산
+            for idx, (_, row) in enumerate(df.iterrows()):
+                # 과거일수 d: 0(가장 오래됨) ~ n-1(가장 최신)
+                d = idx
+                w = math.exp(-lam * (n - 1 - d))
+                for col in self.number_columns:
+                    num = int(row[col])
+                    frequency[num] = float(frequency.get(num, 0.0)) + float(w)
+        else:
+            for col in self.number_columns:
+                for num in df[col]:
+                    frequency[int(num)] = float(frequency.get(int(num), 0.0)) + 1.0
+        # int로 반올림
+        return {int(k): int(round(v)) for k, v in frequency.items()}
+
+    def _apply_diversity_constraints(self, chosen: List[int]) -> List[int]:
+        """홀짝/구간/연속 제약을 완만히 적용하여 구성 품질을 높인다."""
+        nums = sorted(chosen)[:6]
+        if len(nums) != 6:
+            return nums
+        rng = list(range(1, 46))
+        # 홀짝 균형(2:4~4:2)
+        if self.enforce_odd_even:
+            odd = sum(1 for x in nums if x % 2 == 1)
+            if odd < 2 or odd > 4:
+                # 간단 보정: 가장자리를 대체
+                target_is_odd = 3 if odd < 2 else 3
+                while odd < 2 or odd > 4:
+                    cand = random.choice(rng)
+                    if (cand % 2 == 1 and odd < 3) or (cand % 2 == 0 and odd > 3):
+                        rep_idx = random.randrange(0, 6)
+                        if cand not in nums:
+                            old = nums[rep_idx]
+                            nums[rep_idx] = cand
+                            odd = odd + (1 if cand % 2 == 1 else 0) - (1 if old % 2 == 1 else 0)
+                            nums = sorted(nums)
+                            break
+        # 구간 커버(1-15,16-30,31-45 최소 1개)
+        if self.enforce_range_coverage:
+            ranges = [(1,15),(16,30),(31,45)]
+            def has_range(a,b):
+                return any(a <= x <= b for x in nums)
+            for a,b in ranges:
+                if not has_range(a,b):
+                    # 해당 구간에서 대체
+                    cand = random.randint(a,b)
+                    rep_idx = random.randrange(0, 6)
+                    if cand not in nums:
+                        nums[rep_idx] = cand
+                        nums = sorted(nums)
+        # 연속 최대 길이 제한
+        if self.max_consecutive > 0:
+            def longest_consecutive(arr: List[int]) -> int:
+                m = 1
+                c = 1
+                for i in range(1, len(arr)):
+                    if arr[i] == arr[i-1] + 1:
+                        c += 1
+                        m = max(m, c)
+                    else:
+                        c = 1
+                return m
+            tries = 0
+            while longest_consecutive(nums) > self.max_consecutive and tries < 20:
+                rep_idx = random.randrange(0, 6)
+                cand = random.randint(1,45)
+                if cand not in nums:
+                    nums[rep_idx] = cand
+                    nums = sorted(nums)
+                tries += 1
+        return nums
     
     def _create_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """ML 모델을 위한 특성 생성"""
