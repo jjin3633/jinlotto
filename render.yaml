@@ -18,6 +18,38 @@ services:
         value: "*"
       - key: SLACK_WEBHOOK_URL
         sync: false
+      - key: HOT_COLD_WINDOW
+        value: "40"
+      - key: FREQ_DECAY_HALF_LIFE_DRAWS
+        value: "80"
+      - key: CONF_BASE
+        value: "0.40"
+      - key: CONF_MIN
+        value: "0.40"
+      - key: CONF_MAX
+        value: "0.80"
+      - key: CONF_W_CONSENSUS
+        value: "0.30"
+      - key: CONF_W_HOT
+        value: "0.10"
+      - key: MERGE_MAX_UNION_FILL
+        value: "2"
+      - key: ENFORCE_ODD_EVEN_BALANCE
+        value: "true"
+      - key: ENFORCE_RANGE_COVERAGE
+        value: "true"
+      - key: MAX_CONSECUTIVE
+        value: "2"
+      - key: HOT_TOP_K
+        value: "8"
+      - key: COLD_TOP_K
+        value: "8"
+      - key: ENABLE_ML
+        value: "true"
+      - key: DETERMINISTIC_SEED
+        value: "true"
+      - key: WARMUP_ON_STARTUP
+        value: "true"
 
   - type: cron
     name: lotto-weekly-http-update

@@ -12,6 +12,7 @@ from backend.app.routes.static import router as static_router
 from backend.app.utils.slack_notifier import post_to_slack
 from backend.app.db.session import engine
 from backend.app.db.models import Base
+from backend.app.routes import api as api_module
 
 # 로깅 설정
 logging.basicConfig(
@@ -41,6 +42,20 @@ async def lifespan(app: FastAPI):
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         logger.error(f"DB 초기화 실패: {e}")
+    # 선택적 ML 워밍업: 첫 요청 지연 방지
+    try:
+        do_warmup = os.getenv("WARMUP_ON_STARTUP", "true").strip().lower() in ("1","true","yes","y","on")
+    except Exception:
+        do_warmup = True
+    if do_warmup:
+        try:
+            ds = api_module.data_service
+            ps = api_module.prediction_service
+            df = ds.load_data()
+            ps.warmup_today_models(df)
+            logger.info("ML 워밍업 완료")
+        except Exception as e:
+            logger.error(f"ML 워밍업 실패(무시 가능): {e}")
     yield
     # 종료 시 실행
     logger.info("로또 분석 서비스가 종료되었습니다.")
