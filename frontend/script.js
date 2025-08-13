@@ -42,6 +42,37 @@ function pickRandomVideoId() {
     return YT_VIDEO_IDS[Math.floor(Math.random() * YT_VIDEO_IDS.length)];
 }
 
+// 접근성/포커스 관리 상태 및 유틸리티
+let lastFocusedBeforeStretch = null;
+let lastFocusedBeforeFeedback = null;
+
+function setSiblingsInert(parent, exceptions, makeInert) {
+	try {
+		if (!parent) return;
+		const exc = new Set((exceptions || []).filter(Boolean));
+		Array.from(parent.children || []).forEach((child) => {
+			if (!exc.has(child)) {
+				if (makeInert) child.setAttribute('inert', '');
+				else child.removeAttribute('inert');
+			}
+		});
+	} catch (e) {}
+}
+
+function focusFirstInModal(modal) {
+	const selectors = [
+		'button:not([disabled])',
+		'a[href]',
+		'input:not([disabled])',
+		'select:not([disabled])',
+		'textarea:not([disabled])',
+		'[tabindex]:not([tabindex="-1"])'
+	];
+	const first = modal && modal.querySelector(selectors.join(','));
+	if (first && first.focus) first.focus();
+	else if (modal && modal.focus) modal.focus();
+}
+
 // 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     // 예측 버튼 이벤트 리스너
@@ -63,8 +94,17 @@ window.onYouTubeIframeAPIReady = function() {
 function openStretchModal() {
     resetStretchState();
     if (stretchModal) {
+        // 배경 비활성화(inert) 및 포커스 이동
+        lastFocusedBeforeStretch = document.activeElement;
+        const container = document.querySelector('.container');
+        setSiblingsInert(container, [stretchModal], true);
+
         stretchModal.classList.remove('hidden');
-        stretchModal.setAttribute('aria-hidden', 'false');
+        stretchModal.removeAttribute('aria-hidden');
+        stretchModal.setAttribute('aria-modal', 'true');
+        setTimeout(() => {
+            focusFirstInModal(stretchModal);
+        }, 0);
     }
     initPlayerOrFallback();
 }
@@ -73,8 +113,22 @@ function handleStretchClose() {
     // 닫기 시에는 번호를 받지 않음
     cleanupPlayerAndTimer();
     if (stretchModal) {
-        stretchModal.classList.add('hidden');
+        // aria-hidden 적용 전에 포커스 복원
+        try {
+            if (lastFocusedBeforeStretch && document.contains(lastFocusedBeforeStretch)) {
+                lastFocusedBeforeStretch.focus();
+            } else if (predictBtn) {
+                predictBtn.focus();
+            }
+        } catch (e) {}
+
         stretchModal.setAttribute('aria-hidden', 'true');
+        stretchModal.removeAttribute('aria-modal');
+        stretchModal.classList.add('hidden');
+
+        // 배경 inert 해제
+        const container = document.querySelector('.container');
+        setSiblingsInert(container, [stretchModal], false);
     }
 }
 
@@ -190,15 +244,35 @@ function warmUpServer() {
 // 피드백 모달
 function openFeedbackModal() {
     if (feedbackModal) {
+        lastFocusedBeforeFeedback = document.activeElement;
+        const container = document.querySelector('.container');
+        setSiblingsInert(container, [feedbackModal], true);
+
         feedbackModal.classList.remove('hidden');
-        feedbackModal.setAttribute('aria-hidden', 'false');
+        feedbackModal.removeAttribute('aria-hidden');
+        feedbackModal.setAttribute('aria-modal', 'true');
         if (feedbackInput) feedbackInput.value = '';
+        setTimeout(() => {
+            focusFirstInModal(feedbackModal);
+        }, 0);
     }
 }
 function closeFeedbackModal() {
     if (feedbackModal) {
-        feedbackModal.classList.add('hidden');
+        try {
+            if (lastFocusedBeforeFeedback && document.contains(lastFocusedBeforeFeedback)) {
+                lastFocusedBeforeFeedback.focus();
+            } else if (predictBtn) {
+                predictBtn.focus();
+            }
+        } catch (e) {}
+
         feedbackModal.setAttribute('aria-hidden', 'true');
+        feedbackModal.removeAttribute('aria-modal');
+        feedbackModal.classList.add('hidden');
+
+        const container = document.querySelector('.container');
+        setSiblingsInert(container, [feedbackModal], false);
     }
 }
 async function sendFeedback() {
