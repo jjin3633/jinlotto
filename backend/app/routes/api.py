@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from typing import Dict, Any, List
+import os
 from datetime import datetime
 import logging
 import pandas as pd
@@ -554,12 +555,18 @@ async def predict_numbers(req: Request, request: PredictionRequest, db: Session 
 
         # 쿠키 설정(존재하지 않을 때만)
         fastapi_response = JSONResponse(content=jsonable_encoder(response.dict()))
+        # 보안 쿠키 설정 옵션
+        try:
+            secure_cookie = os.getenv("COOKIE_SECURE", "true").strip().lower() in ("1","true","yes","on")
+        except Exception:
+            secure_cookie = True
         fastapi_response.set_cookie(
             key=cookie_name,
             value=user_key,
             max_age=60*60*24*365,
             httponly=True,
             samesite="lax",
+            secure=secure_cookie,
         )
         return fastapi_response
 
@@ -668,10 +675,15 @@ async def get_odd_even_chart():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/debug/db-stats")
-async def get_db_stats():
+async def get_db_stats(req: Request):
     """DB 테이블별 행 수와 연결 상태를 반환(항상 200)"""
-    import os
     try:
+        # 운영 보안: DEBUG_TOKEN이 설정되어 있으면 헤더 검증 필요
+        debug_token = os.getenv("DEBUG_TOKEN")
+        if debug_token:
+            provided = req.headers.get("x-debug-token") or req.headers.get("X-Debug-Token")
+            if provided != debug_token:
+                raise HTTPException(status_code=403, detail="forbidden")
         # 지연 임포트로 세션 생성 중 예외를 잡기 쉽게 함
         from backend.app.db.session import SessionLocal, DATABASE_URL
         db = SessionLocal()
@@ -698,9 +710,8 @@ async def get_db_stats():
         }, error=str(e))
 
 @router.get("/debug/db-conn")
-async def get_db_conn_info():
+async def get_db_conn_info(req: Request):
     """DB 연결 상태(아주 경량): 드라이버/다이얼렉트/핑 결과만 반환"""
-    import os
     info: Dict[str, Any] = {}
     try:
         from backend.app.db.session import engine, DATABASE_URL
@@ -710,6 +721,12 @@ async def get_db_conn_info():
             info["driver"] = getattr(engine.dialect, "driver", None)
         except Exception:
             pass
+        # 운영 보안: DEBUG_TOKEN이 설정되어 있으면 헤더 검증 필요
+        debug_token = os.getenv("DEBUG_TOKEN")
+        if debug_token:
+            provided = req.headers.get("x-debug-token") or req.headers.get("X-Debug-Token")
+            if provided != debug_token:
+                raise HTTPException(status_code=403, detail="forbidden")
         # 초경량 연결 테스트
         try:
             with engine.connect() as conn:

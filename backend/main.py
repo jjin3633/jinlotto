@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 import uvicorn
 from contextlib import asynccontextmanager
@@ -70,13 +73,56 @@ app = FastAPI(
 )
 
 # CORS 설정
+def _get_allowed_origins() -> list:
+    raw = os.getenv("ALLOWED_ORIGINS")
+    if raw:
+        return [o.strip() for o in raw.split(",") if o.strip()]
+    # 기본: 프로덕션 도메인 및 로컬 개발 허용
+    return [
+        "https://jinlotto.onrender.com",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 프로덕션에서는 특정 도메인으로 제한
+    allow_origins=_get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# HTTPS 강제 리다이렉트 (프록시 뒤 HTTPS 환경에서도 안전)
+if os.getenv("ENABLE_HTTPS_REDIRECT", "true").lower() in ("1", "true", "yes", "on"):
+    app.add_middleware(HTTPSRedirectMiddleware)
+
+# 신뢰 호스트 제한
+def _get_allowed_hosts() -> list:
+    raw = os.getenv("ALLOWED_HOSTS")
+    if raw:
+        return [h.strip() for h in raw.split(",") if h.strip()]
+    return [
+        "jinlotto.onrender.com",
+        "localhost",
+        "127.0.0.1",
+    ]
+
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=_get_allowed_hosts())
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # 기본 보안 헤더 적용
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        # CSP는 보수적으로 적용(유튜브 임베드 허용 필요 시 별도 설정 권장)
+        # response.headers.setdefault("Content-Security-Policy", "default-src 'self'; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; img-src 'self' data: https://i.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' https://www.youtube.com https://s.ytimg.com https://cdnjs.cloudflare.com")
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # 라우터 등록 (정적 라우터는 마지막에 등록해야 API 경로를 가로채지 않음)
 app.include_router(api_router, prefix="/api")
