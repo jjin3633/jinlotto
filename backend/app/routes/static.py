@@ -102,3 +102,10 @@ async def serve_rss():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
+
+@router.get("/ads.txt")
+async def serve_ads():
+    file_path = os.path.join(static_dir, "ads.txt")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}

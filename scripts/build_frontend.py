@@ -38,6 +38,7 @@ def build_frontend():
         "robots.txt",
         "sitemap.xml",
         "rss.xml",
+        "ads.txt",
     ]
     
     copied_files = []
