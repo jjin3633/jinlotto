@@ -80,3 +80,18 @@ async def serve_main_video():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
+
+# SEO: robots.txt, sitemap.xml 루트 제공
+@router.get("/robots.txt")
+async def serve_robots():
+    file_path = os.path.join(static_dir, "robots.txt")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
+
+@router.get("/sitemap.xml")
+async def serve_sitemap():
+    file_path = os.path.join(static_dir, "sitemap.xml")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
