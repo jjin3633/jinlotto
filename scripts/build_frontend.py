@@ -35,6 +35,9 @@ def build_frontend():
         "script.js",
         "favicon.ico",
         "logo.svg",
+        "robots.txt",
+        "sitemap.xml",
+        "rss.xml",
     ]
     
     copied_files = []

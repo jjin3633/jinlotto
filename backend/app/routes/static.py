@@ -95,3 +95,10 @@ async def serve_sitemap():
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
+
+@router.get("/rss.xml")
+async def serve_rss():
+    file_path = os.path.join(static_dir, "rss.xml")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
