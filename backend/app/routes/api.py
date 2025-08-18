@@ -264,15 +264,22 @@ async def update_latest_data(db: Session = Depends(get_session)):
 
 @router.post("/data/match-latest")
 async def match_latest_and_notify(db: Session = Depends(get_session)):
-    """CSV의 최신 회차 번호 기준으로 DB.draws 매칭 계산 후 Slack 요약 발송"""
+    """최신 원본(외부 API) 기준으로 데이터 업데이트를 시도한 뒤 DB.draws 매칭 계산 후 Slack 요약 발송
+
+    변경 취지: 기존에는 로컬 CSV(`load_data`)의 마지막 행을 기준으로 매칭했으나,
+    이를 `update_latest_data()`를 호출해 최신 회차를 우선적으로 반영한 뒤 매칭하도록 변경했습니다.
+    """
     try:
-        df = data_service.load_data()
+        # 먼저 서버에서 최신 데이터만 업데이트 시도 (외부 API 호출 및 CSV 병합)
+        df = data_service.update_latest_data()
         summary = data_service.get_data_summary(df)
         latest = summary.get('latest_draw', {}) or {}
         if not latest:
             return APIResponse(success=False, message="최신 회차 정보를 찾을 수 없습니다.")
         draw_number = int(latest.get('draw_number'))
 
+        # DB의 draws 테이블과 동기화가 필요한 경우 이미 /data/update에서 처리되므로
+        # 여기서는 DB 매칭과 요약에 집중
         counts = evaluate_matches_for_draw(db, draw_number)
         try:
             post_to_slack(
