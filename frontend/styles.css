@@ -590,6 +590,23 @@ body {
     margin-right: auto;
 }
 
+/* 월계관 아이콘 (의견 버튼과 같은 X축, 왼쪽 끝으로 배치) */
+.laurel {
+    position: absolute;
+    top: 16px; /* feedback-fab과 동일 X축(수평) 정렬 */
+    width: 44px;
+    height: 44px;
+    z-index: 60;
+}
+.laurel-1 { left: 20px; transform: translateX(0); }
+.laurel-2 { left: 72px; transform: translateX(0); }
+
+@media (max-width: 480px) {
+    .laurel { width: 36px; height: 36px; top: 12px; }
+    .laurel-1 { left: 12px; }
+    .laurel-2 { left: 56px; }
+}
+
 /* 고정폭 제거: 컨테이너 폭에 맞춰 1:1 비율로 확장 */
 
 /* 스크롤바 스타일 */
