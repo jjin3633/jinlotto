@@ -198,9 +198,19 @@ async def sync_csv_to_db_range(start_draw: int, end_draw: int, db: Session = Dep
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/data/update")
-async def update_latest_data(db: Session = Depends(get_session)):
+async def update_latest_data(req: Request, db: Session = Depends(get_session)):
     """최신 데이터 업데이트"""
     try:
+        # 운영: Scheduler에서만 호출하도록 토큰 검증 가능
+        scheduler_token = os.getenv("SCHEDULER_TOKEN")
+        if scheduler_token:
+            try:
+                provided = req.headers.get("x-scheduler-token") or req.headers.get("X-Scheduler-Token")
+            except Exception:
+                provided = None
+            if provided != scheduler_token:
+                raise HTTPException(status_code=403, detail="forbidden")
+
         logger.info("최신 데이터 업데이트 시작")
         
         df = data_service.update_latest_data()
@@ -258,6 +268,9 @@ async def update_latest_data(db: Session = Depends(get_session)):
                 "latest_draw": summary.get('latest_draw', {})
             }
         )
+    except HTTPException:
+        # re-raise HTTP exceptions (like forbidden)
+        raise
     except Exception as e:
         logger.error(f"데이터 업데이트 중 오류: {e}")
         raise HTTPException(status_code=500, detail=str(e))
