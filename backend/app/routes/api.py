@@ -23,6 +23,8 @@ from ..db import models as dbm
 from ..services.match_service import evaluate_matches_for_draw
 from ..utils.slack_notifier import post_to_slack
 from sqlalchemy.orm import Session
+import requests
+import importlib
 
 logger = logging.getLogger(__name__)
 
@@ -328,6 +330,99 @@ async def get_latest_draw():
             raise HTTPException(status_code=404, detail="최신 회차 정보를 찾을 수 없습니다.")
     except Exception as e:
         logger.error(f"최신 회차 조회 중 오류: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/data/match-supabase")
+async def match_supabase_and_notify(db: Session = Depends(get_session)):
+    """Supabase의 predictions 테이블을 조회해 최신 회차 기준으로 매칭/요약 후 Slack으로 전송
+    (사용: SUPABASE_URL, SUPABASE_ANON_KEY 환경변수 필요)
+    """
+    try:
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_ANON_KEY")
+        if not supabase_url or not supabase_key:
+            return APIResponse(success=False, message="SUPABASE_URL or SUPABASE_ANON_KEY not set")
+
+        # 동적 임포트(패키지가 없으면 에러 처리)
+        try:
+            from supabase import create_client
+        except Exception as ie:
+            logger.error("supabase client import failed: %s", ie)
+            return APIResponse(success=False, message="supabase client not installed")
+
+        client = create_client(supabase_url, supabase_key)
+        preds_res = client.from_("predictions").select("*").execute()
+        preds = getattr(preds_res, "data", []) or []
+
+        # 최신 회차는 서비스의 /api/data/latest 호출 사용
+        monitor_base = os.getenv("MONITOR_BASE_URL", "https://jinlotto.onrender.com")
+        try:
+            r = requests.get(f"{monitor_base.rstrip('/')}/api/data/latest", timeout=30)
+            r.raise_for_status()
+            latest = r.json().get("data", {})
+        except Exception as e:
+            logger.error("failed to fetch latest draw from monitor: %s", e)
+            return APIResponse(success=False, message="failed to fetch latest draw")
+
+        if not latest:
+            return APIResponse(success=False, message="no latest draw found")
+
+        draw_number = int(latest.get("draw_number"))
+        draw_numbers = [
+            int(latest.get("number_1", 0)),
+            int(latest.get("number_2", 0)),
+            int(latest.get("number_3", 0)),
+            int(latest.get("number_4", 0)),
+            int(latest.get("number_5", 0)),
+            int(latest.get("number_6", 0)),
+        ]
+        bonus = int(latest.get("bonus_number", 0))
+
+        counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+
+        def _compute_rank_local(user_numbers, draw_numbers, bonus_number):
+            user_set = set(int(x) for x in user_numbers)
+            draw_set = set(int(x) for x in draw_numbers)
+            matched = sorted(list(user_set & draw_set))
+            match_count = len(matched)
+            bonus_match = int(bonus_number) in user_set
+            if match_count == 6:
+                return 1
+            if match_count == 5 and bonus_match:
+                return 2
+            if match_count == 5:
+                return 3
+            if match_count == 4:
+                return 4
+            if match_count == 3:
+                return 5
+            return 0
+
+        for p in preds:
+            nums = p.get("numbers")
+            if isinstance(nums, list) and len(nums) >= 6:
+                rank = _compute_rank_local(nums[:6], draw_numbers, bonus)
+                if rank in counts:
+                    counts[rank] += 1
+
+        # Slack 전송
+        try:
+            post_to_slack(
+                f"📣 회차 {draw_number} 결과 요약\n"
+                f"1등: {counts.get(1,0)}\n"
+                f"2등: {counts.get(2,0)}\n"
+                f"3등: {counts.get(3,0)}\n"
+                f"4등: {counts.get(4,0)}\n"
+                f"5등: {counts.get(5,0)}"
+            )
+        except Exception:
+            pass
+
+        return APIResponse(success=True, message="Supabase latest matching done", data={"draw_number": draw_number, "counts": counts})
+
+    except Exception as e:
+        logger.error(f"supabase matching error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/analysis/comprehensive")
