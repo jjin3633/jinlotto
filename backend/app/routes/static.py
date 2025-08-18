@@ -88,7 +88,8 @@ async def serve_logo_svg():
 # 개별 월계관 파일 편의 라우트 (/laurel1.svg, /laurel2.svg)
 @router.get("/laurel1.svg")
 async def serve_laurel1_svg():
-    file_path = os.path.join(static_dir, "assets", "images", "laurel1.svg")
+    # static 루트에 직접 위치한 laurel1.svg 파일을 반환하도록 변경
+    file_path = os.path.join(static_dir, "laurel1.svg")
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
@@ -96,7 +97,8 @@ async def serve_laurel1_svg():
 
 @router.get("/laurel2.svg")
 async def serve_laurel2_svg():
-    file_path = os.path.join(static_dir, "assets", "images", "laurel2.svg")
+    # static 루트에 직접 위치한 laurel2.svg 파일을 반환하도록 변경
+    file_path = os.path.join(static_dir, "laurel2.svg")
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return {"error": "File not found"}
