@@ -84,6 +84,23 @@ async def serve_logo_svg():
         return FileResponse(file_path)
     return {"error": "File not found"}
 
+
+# 개별 월계관 파일 편의 라우트 (/laurel1.svg, /laurel2.svg)
+@router.get("/laurel1.svg")
+async def serve_laurel1_svg():
+    file_path = os.path.join(static_dir, "assets", "images", "laurel1.svg")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
+
+
+@router.get("/laurel2.svg")
+async def serve_laurel2_svg():
+    file_path = os.path.join(static_dir, "assets", "images", "laurel2.svg")
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
+
 @router.get("/Main_KR_Home.mp4")
 async def serve_main_video():
     file_path = os.path.join(static_dir, "Main_KR_Home.mp4")
