@@ -27,6 +27,16 @@ async def serve_static_files(path: str):
     else:
         return {"error": "File not found"}
 
+
+# 편의 라우트: /assets/* 요청을 backend static 디렉터리로 바로 매핑
+@router.get("/assets/{path:path}")
+async def serve_assets(path: str):
+    """Serve files requested under /assets/... from the backend static directory."""
+    file_path = os.path.join(static_dir, path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
+
 # 루트 최상위 경로로 접근하는 정적 자산에 대한 편의 라우트
 @router.get("/styles.css")
 async def serve_root_styles():
