@@ -68,8 +68,22 @@ def main():
         print("Failed to fetch predictions:", e, file=sys.stderr)
         return 3
 
-    # 최신 회차 조회
+    # 최신 회차 반영: 서버의 /api/data/update를 호출해 CSV/DB 동기화 시도한 뒤 최신 회차 조회
     try:
+        update_url = f"{MONITOR_BASE.rstrip('/')}/api/data/update"
+        headers = {}
+        mon_token = os.getenv("MONITOR_SCHEDULER_TOKEN") or os.getenv("SCHEDULER_TOKEN")
+        if mon_token:
+            headers["X-Scheduler-Token"] = mon_token
+        try:
+            up = requests.post(update_url, headers=headers, timeout=120)
+            if up.status_code != 200:
+                # 경고만 출력; 계속해서 최신 회차 조회 시도
+                print(f"Warning: /api/data/update returned status {up.status_code}", file=sys.stderr)
+        except Exception as e:
+            print("Warning: failed to call /api/data/update:", e, file=sys.stderr)
+
+        # 최신 회차 조회
         r = requests.get(f"{MONITOR_BASE.rstrip('/')}/api/data/latest", timeout=30)
         r.raise_for_status()
         latest = r.json().get("data") or {}
