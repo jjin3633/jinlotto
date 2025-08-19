@@ -1,4 +1,5 @@
 import os
+import joblib
 import json
 import math
 import random
@@ -49,6 +50,7 @@ class PredictionService:
         self.conf_max = _get_env_float('CONF_MAX', 0.80)
         self.conf_w_consensus = _get_env_float('CONF_W_CONSENSUS', 0.30)
         self.conf_w_hot = _get_env_float('CONF_W_HOT', 0.10)
+        self.conf_w_entropy = _get_env_float('CONF_W_ENTROPY', 0.20)
         self.merge_max_union_fill = _get_env_int('MERGE_MAX_UNION_FILL', 2)
         self.enforce_odd_even = _get_env_bool('ENFORCE_ODD_EVEN_BALANCE', True)
         self.enforce_range_coverage = _get_env_bool('ENFORCE_RANGE_COVERAGE', True)
@@ -103,44 +105,100 @@ class PredictionService:
                 features = self._create_features(df)
                 self._features_cache_by_date[today_key] = features
 
-            # 포지션 모델 6개를 1회만 학습하여 캐시에 저장 후 재사용
-            # 요청 경로에서는 캐시가 없으면 학습을 건너뛰어 첫 응답 지연을 방지
-            if today_key not in self._models_cache_by_date or not self.enable_ml:
+            # 시도 1: 디스크에 저장된 분류기(models/position_{i}_clf.pkl)가 있으면 이를 사용하여
+            # predict_proba 기반으로 상위 후보에서 샘플링해 세트를 생성한다.
+            models_dir = os.path.join(os.getcwd(), 'models')
+            models_for_today = [None] * 6
+            if os.path.isdir(models_dir):
+                for i in range(6):
+                    # prefer tuned model if available
+                    tuned_path = os.path.join(models_dir, f'position_{i}_clf_tuned.pkl')
+                    default_path = os.path.join(models_dir, f'position_{i}_clf.pkl')
+                    path = tuned_path if os.path.exists(tuned_path) else default_path
+                    if os.path.exists(path):
+                        try:
+                            models_for_today[i] = joblib.load(path)
+                        except Exception:
+                            models_for_today[i] = None
+
+            # If no models available or ML disabled, fallback to statistical
+            if not any(models_for_today) or not self.enable_ml:
                 return self.statistical_prediction(df, num_sets)
 
-            models_for_today = self._models_cache_by_date.get(today_key, [None]*6)
-
-            # 최근 피처 1행으로 예측 1세트 산출
+            # 최근 피처 1행으로 예측 확률 획득
             recent_features = features.tail(1)
-            base_predicted = []
+
+            # For each position, get probability vector for numbers 1..45
+            prob_vectors = []
             for position in range(6):
                 m = models_for_today[position]
-                if m is not None:
-                    pred = m.predict(recent_features)[0]
-                    pred = max(1, min(45, int(round(pred))))
-                    base_predicted.append(pred)
+                if m is None:
+                    # uniform if missing
+                    prob_vectors.append([1.0/45.0] * 45)
                 else:
-                    base_predicted.append(random.randint(1, 45))
+                    try:
+                        proba = m.predict_proba(recent_features)[0]
+                        # sklearn gives classes_ array
+                        classes = m.classes_
+                        vec = [0.0] * 45
+                        for idx, cls in enumerate(classes):
+                            if 1 <= int(cls) <= 45:
+                                vec[int(cls) - 1] = float(proba[idx])
+                        # normalize
+                        s = sum(vec)
+                        if s <= 0:
+                            vec = [1.0/45.0] * 45
+                        else:
+                            vec = [v / s for v in vec]
+                        prob_vectors.append(vec)
+                    except Exception:
+                        prob_vectors.append([1.0/45.0] * 45)
 
-            # 첫 세트는 모델 예측 기반, 나머지는 가중 샘플 혼합으로 빠르게 생성
-            base_set = sorted(list(set(base_predicted)))
-            while len(base_set) < 6:
-                add = random.randint(1, 45)
-                if add not in base_set:
-                    base_set.append(add)
-            base_set.sort()
+            # 샘플링 전략: 각 세트마다 각 포지션에서 확률분포로 샘플링하되 중복 제거
+            predictions: List[List[int]] = []
+            rng = list(range(1,46))
+            for _ in range(num_sets):
+                chosen = []
+                for pos in range(6):
+                    vec = prob_vectors[pos]
+                    # restrict to top_k candidates to avoid tiny-prob noise
+                    top_k = 8
+                    top_idx = sorted(range(45), key=lambda x: vec[x], reverse=True)[:top_k]
+                    candidates = [i+1 for i in top_idx]
+                    weights = [vec[i-1] for i in candidates]
+                    # normalize weights
+                    total = sum(weights)
+                    if total <= 0:
+                        weights = None
+                    else:
+                        weights = [w/total for w in weights]
 
-            predictions: List[List[int]] = [base_set]
+                    # choose one
+                    try:
+                        pick = random.choices(candidates, weights=weights, k=1)[0]
+                    except Exception:
+                        pick = random.randint(1,45)
+                    # avoid duplicates by retrying few times
+                    tries = 0
+                    while pick in chosen and tries < 10:
+                        try:
+                            pick = random.choices(candidates, weights=weights, k=1)[0]
+                        except Exception:
+                            pick = random.randint(1,45)
+                        tries += 1
+                    chosen.append(pick)
 
-            # 빈도 기반 가중치로 경량 보강 세트 생성
-            frequency = self._calculate_frequency(df, decay_half_life=self.freq_decay_half_life)
-            weights = [frequency.get(i, 1) for i in range(1, 46)]
-            for _ in range(max(0, num_sets - 1)):
-                chosen = set(base_set)
-                while len(chosen) < 6:
-                    cand = random.choices(range(1, 46), weights=weights, k=1)[0]
-                    chosen.add(int(cand))
-                predictions.append(sorted(list(chosen))[:6])
+                # ensure 6 unique
+                chosen = list(dict.fromkeys(chosen))
+                i_try = 0
+                while len(chosen) < 6 and i_try < 20:
+                    cand = random.choices(rng, k=1)[0]
+                    if cand not in chosen:
+                        chosen.append(cand)
+                    i_try += 1
+                chosen = sorted(chosen)[:6]
+                chosen = self._apply_diversity_constraints(chosen)
+                predictions.append(chosen)
 
             return predictions
             
@@ -166,10 +224,13 @@ class PredictionService:
             # 2) ML 기반 예측(실패 시 통계 대체)
             #    품질 우선: ML 사용. 캐시 없으면 내부에서 학습 수행(워밍업이 선행되면 빠름)
             try:
-                # 요청 경로에서는 워밍업을 호출하지 않음(헬스체크/초기 로딩에서 실행)
-                ml_sets = self.ml_prediction(df, num_sets)
+                # 우선 운영용 순차 예측(각 포지션 예측값을 다음 포지션 입력으로 사용)
+                ml_sets = self.ml_prediction_sequential(df, num_sets)
             except Exception:
-                ml_sets = stat_sets
+                try:
+                    ml_sets = self.ml_prediction(df, num_sets)
+                except Exception:
+                    ml_sets = stat_sets
 
             # 3) 빈도 상위/하위(핫/콜드) 계산
             frequency = self._calculate_frequency(df, decay_half_life=self.freq_decay_half_life)
@@ -213,7 +274,27 @@ class PredictionService:
                 # 신뢰도: 교집합 비율 + 핫번호 포함 비율로 가중(0.35~0.75 사이)
                 consensus_ratio = len(consensus) / 6.0
                 hot_hit = sum(1 for x in chosen if x in hot_simple) / 6.0
-                conf = self.conf_base + self.conf_w_consensus * consensus_ratio + self.conf_w_hot * hot_hit
+                # 엔트로피 기반 불확실성 측정: 낮을수록 신뢰도 높음
+                try:
+                    # compute entropy across positions using prob_vectors if available
+                    entropy_sum = 0.0
+                    if 'prob_vectors' in locals():
+                        import math
+                        for pos, vec in enumerate(prob_vectors):
+                            # entropy of discrete distribution
+                            e = -sum([p * math.log(p + 1e-12) for p in vec])
+                            entropy_sum += e
+                        # normalize entropy into [0,1] roughly
+                        entropy_score = 1.0 - (entropy_sum / (6.0 * math.log(45)))
+                    else:
+                        entropy_score = 0.5
+                except Exception:
+                    entropy_score = 0.5
+
+                conf = (self.conf_base
+                        + self.conf_w_consensus * consensus_ratio
+                        + self.conf_w_hot * hot_hit
+                        + self.conf_w_entropy * entropy_score)
                 conf = max(self.conf_min, min(self.conf_max, conf))
                 confidence_scores.append(round(conf, 3))
 
