@@ -122,7 +122,8 @@ async def sync_csv_to_db(db: Session = Depends(get_session)):
                     obj.numbers = numbers
                     obj.bonus_number = bonus
                     updated += 1
-            except Exception:
+            except Exception as ex:
+                logger.exception("Row processing failed, skipping: %s", ex)
                 continue
         db.commit()
         return APIResponse(success=True, message="CSV→DB 동기화 완료", data={"inserted": inserted, "updated": updated, "total": int(len(df))})

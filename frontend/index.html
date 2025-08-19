@@ -14,9 +14,9 @@
 	<meta property="og:description" content="스트레칭 로또">
 	<meta property="og:url" content="https://jinlotto.onrender.com/">
 	<meta property="og:type" content="website">
-    <link rel="icon" href="/favicon.ico" sizes="any">
-            <link rel="icon" type="image/png" href="/favicon.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="/static/favicon.ico" sizes="any">
+            <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -24,7 +24,7 @@
     <div class="container">
         <!-- 메인 (구글 스타일 히어로 레이아웃) -->
         <main class="hero">
-            <img src="/logo.svg" alt="logo" class="site-logo" />
+            <img src="/static/logo.svg" alt="logo" class="site-logo" />
             <div class="hero-actions">
                 <button id="predict-btn" class="btn btn-primary" aria-label="스트레칭 후 번호받기">스트레칭 후 번호받기</button>
             </div>
@@ -34,8 +34,10 @@
         <button id="feedback-open" class="feedback-fab" aria-label="의견 남기기">의견 남기기</button>
 
         <!-- 왼쪽 상단 월계관 아이콘들 (의견 버튼과 같은 X축, 왼쪽 끝에 배치) -->
-        <img id="laurel-1" class="laurel laurel-1" src="/laurel1.svg" alt="laurel 1" />
-        <img id="laurel-2" class="laurel laurel-2" src="/laurel2.svg" alt="laurel 2" />
+        <div class="laurel-wrap" aria-hidden="true">
+            <img id="laurel-1" class="laurel laurel-1" src="/static/laurel1.png" alt="laurel 1" />
+            <img id="laurel-2" class="laurel laurel-2" src="/static/laurel2.png" alt="laurel 2" />
+        </div>
 
         <!-- 고정(스티키) 히어로 아래쪽에 결과 표시 영역 -->
         <section id="prediction-section" class="prediction-section" style="display: none;">
@@ -114,6 +116,6 @@
 
     <!-- YouTube IFrame API (영상 주입 및 재생 상태 이벤트 처리) -->
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="script.js"></script>
+    <script src="/static/script.js"></script>
 </body>
 </html>
