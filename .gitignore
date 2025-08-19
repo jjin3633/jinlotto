@@ -64,3 +64,5 @@ temp/
 
 # Render specific
 .render-buildlogs/
+models/*_tuned.pkl
+models/seq_*.pkl
