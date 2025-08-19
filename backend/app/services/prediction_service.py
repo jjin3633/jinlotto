@@ -60,6 +60,8 @@ class PredictionService:
         self.freq_decay_half_life = _get_env_int('FREQ_DECAY_HALF_LIFE_DRAWS', 80)
         self.deterministic_seed = _get_env_bool('DETERMINISTIC_SEED', True)
         self.enable_ml = _get_env_bool('ENABLE_ML', True)
+        # cache for models loaded from disk keyed by date
+        self._loaded_models_by_date: Dict[str, List[Any]] = {}
     
     def statistical_prediction(self, df: pd.DataFrame, num_sets: int = 5) -> List[List[int]]:
         """통계 기반 번호 예측"""
@@ -105,28 +107,48 @@ class PredictionService:
                 features = self._create_features(df)
                 self._features_cache_by_date[today_key] = features
 
-            # 시도 1: 디스크에 저장된 분류기(models/position_{i}_clf.pkl)가 있으면 이를 사용하여
-            # predict_proba 기반으로 상위 후보에서 샘플링해 세트를 생성한다.
-            models_dir = os.path.join(os.getcwd(), 'models')
+            # 시도 1: 디스크에 저장된 분류기(models/position_{i}_clf.pkl)를 로드(캐시 우선)
+            today_key = self._get_kst_today().strftime('%Y%m%d')
             models_for_today = [None] * 6
-            if os.path.isdir(models_dir):
-                for i in range(6):
-                    # prefer tuned model if available
-                    tuned_path = os.path.join(models_dir, f'position_{i}_clf_tuned.pkl')
-                    default_path = os.path.join(models_dir, f'position_{i}_clf.pkl')
-                    path = tuned_path if os.path.exists(tuned_path) else default_path
-                    if os.path.exists(path):
-                        try:
-                            models_for_today[i] = joblib.load(path)
-                        except Exception:
-                            models_for_today[i] = None
+
+            if today_key in self._loaded_models_by_date:
+                models_for_today = self._loaded_models_by_date[today_key]
+            else:
+                models_dir = os.path.join(os.getcwd(), 'models')
+                if os.path.isdir(models_dir):
+                    load_start = __import__('time').perf_counter()
+                    for i in range(6):
+                        tuned_path = os.path.join(models_dir, f'position_{i}_clf_tuned.pkl')
+                        default_path = os.path.join(models_dir, f'position_{i}_clf.pkl')
+                        path = tuned_path if os.path.exists(tuned_path) else default_path
+                        if os.path.exists(path):
+                            try:
+                                # mmap_mode can reduce memory peak for large models
+                                models_for_today[i] = joblib.load(path)
+                            except Exception as ex:
+                                logger.exception(f"Failed to load model {path}: {ex}")
+                                models_for_today[i] = None
+                    load_end = __import__('time').perf_counter()
+                    logger.info(f"Loaded models from disk in {load_end-load_start:.3f}s")
+                # cache loaded models even if some are None
+                self._loaded_models_by_date[today_key] = models_for_today
 
             # If no models available or ML disabled, fallback to statistical
             if not any(models_for_today) or not self.enable_ml:
                 return self.statistical_prediction(df, num_sets)
 
-            # 최근 피처 1행으로 예측 확률 획득
+            # 최근 피처 1행으로 예측 확률 획득 및 숫자형 컬럼만 사용
             recent_features = features.tail(1)
+            # drop non-feature columns and numeric-cast
+            drop_cols = ['draw_number', 'draw_date', 'bonus_number'] + self.number_columns
+            recent_X = recent_features.drop(columns=[c for c in drop_cols if c in recent_features.columns], errors='ignore')
+            recent_X = recent_X.fillna(0)
+            # ensure numpy float array for sklearn
+            try:
+                recent_vals = recent_X.astype(float).values
+            except Exception:
+                # fallback: coerce via to_numpy with errors='raise' wrapped
+                recent_vals = recent_X.apply(pd.to_numeric, errors='coerce').fillna(0).values
 
             # For each position, get probability vector for numbers 1..45
             prob_vectors = []
@@ -137,7 +159,11 @@ class PredictionService:
                     prob_vectors.append([1.0/45.0] * 45)
                 else:
                     try:
-                        proba = m.predict_proba(recent_features)[0]
+                        pred_start = __import__('time').perf_counter()
+                        # use numeric array to avoid dtype issues
+                        proba = m.predict_proba(recent_vals)[0]
+                        pred_end = __import__('time').perf_counter()
+                        logger.debug(f"predict_proba pos={position} took {pred_end-pred_start:.4f}s")
                         # sklearn gives classes_ array
                         classes = m.classes_
                         vec = [0.0] * 45
