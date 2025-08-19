@@ -1,6 +1,9 @@
 import os
 import joblib
 import json
+import threading
+import queue
+import time
 import math
 import random
 import pandas as pd
@@ -62,6 +65,12 @@ class PredictionService:
         self.enable_ml = _get_env_bool('ENABLE_ML', True)
         # cache for models loaded from disk keyed by date
         self._loaded_models_by_date: Dict[str, List[Any]] = {}
+        # background prediction job queue and tracking
+        self._job_queue: "queue.Queue[Tuple[str,int]]" = queue.Queue()
+        self._pending_jobs: set = set()
+        self._job_lock = threading.Lock()
+        self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
+        self._worker_thread.start()
     
     def statistical_prediction(self, df: pd.DataFrame, num_sets: int = 5) -> List[List[int]]:
         """통계 기반 번호 예측"""
@@ -124,7 +133,11 @@ class PredictionService:
                         if os.path.exists(path):
                             try:
                                 # mmap_mode can reduce memory peak for large models
-                                models_for_today[i] = joblib.load(path)
+                                try:
+                                    models_for_today[i] = joblib.load(path, mmap_mode='r')
+                                except TypeError:
+                                    # older joblib may not accept mmap_mode, fallback
+                                    models_for_today[i] = joblib.load(path)
                             except Exception as ex:
                                 logger.exception(f"Failed to load model {path}: {ex}")
                                 models_for_today[i] = None
@@ -147,7 +160,7 @@ class PredictionService:
             try:
                 recent_vals = recent_X.astype(float).values
             except Exception:
-                # fallback: coerce via to_numpy with errors='raise' wrapped
+                # fallback: coerce via to_numeric
                 recent_vals = recent_X.apply(pd.to_numeric, errors='coerce').fillna(0).values
 
             # For each position, get probability vector for numbers 1..45
@@ -382,7 +395,24 @@ class PredictionService:
                 seed_base = int(self._get_kst_today().timestamp())
             random.seed(hash((user_key, seed_base)))
 
-        unified = self.unified_prediction(df, num_sets)
+        # Quick response: return statistical prediction immediately and enqueue ML refinement
+        unified = None
+        try:
+            # fast path statistical
+            stat_only = self.statistical_prediction(df, num_sets)
+            unified = {
+                'sets': stat_only,
+                'confidence_scores': [0.45] * num_sets,
+                'reasoning': []
+            }
+            # enqueue background ML job for this user/date
+            job_key = f"{date_str}:{user_key}:{num_sets}"
+            with self._job_lock:
+                if job_key not in self._pending_jobs:
+                    self._pending_jobs.add(job_key)
+                    self._job_queue.put((job_key, user_key, num_sets))
+        except Exception:
+            unified = self.unified_prediction(df, num_sets)
         result: Dict[str, Any] = {
             'mode': 'daily-fixed',
             'generated_for': date_str,
@@ -530,6 +560,52 @@ class PredictionService:
         features = features.fillna(0)
         
         return features
+
+    # ----------------------------
+    # Background worker for ML refinement
+    # ----------------------------
+    def _worker_loop(self):
+        """Background loop that processes queued ML refine jobs."""
+        while True:
+            try:
+                job = self._job_queue.get()
+                if not job:
+                    time.sleep(0.5)
+                    continue
+                job_key, user_key, num_sets = job
+                logger.info(f"ML worker processing job {job_key}")
+                try:
+                    # load latest data and compute unified prediction (may be heavy)
+                    from backend.app.services.data_service import DataService
+                    ds = DataService()
+                    df = ds.load_data()
+                    refined = self.unified_prediction(df, num_sets)
+                    # write refined result to store path so subsequent requests get ML result
+                    date_str = self._get_kst_today().strftime('%Y%m%d')
+                    store_path = self._get_daily_store_path(date_str, user_key)
+                    try:
+                        with open(store_path, 'w', encoding='utf-8') as f:
+                            json.dump({
+                                'mode': 'daily-fixed',
+                                'generated_for': date_str,
+                                'valid_until': (self._get_kst_today().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)).isoformat(),
+                                'created_at': self._get_kst_today().isoformat(),
+                                'user_key': user_key,
+                                'sets': [[int(x) for x in s] for s in refined.get('sets', [])],
+                                'confidence_scores': [float(x) for x in refined.get('confidence_scores', [])],
+                                'reasoning': refined.get('reasoning', [])
+                            }, ensure_ascii=False)
+                    except Exception as e:
+                        logger.error(f"Failed to write refined ML result for {job_key}: {e}")
+                except Exception as e:
+                    logger.error(f"ML worker job {job_key} failed: {e}")
+                finally:
+                    with self._job_lock:
+                        if job_key in self._pending_jobs:
+                            self._pending_jobs.remove(job_key)
+                    self._job_queue.task_done()
+            except Exception:
+                time.sleep(1.0)
     
     def _train_position_model(self, df: pd.DataFrame, position: int, precomputed_features: pd.DataFrame | None = None):
         """특정 위치의 번호를 예측하는 모델 학습"""
