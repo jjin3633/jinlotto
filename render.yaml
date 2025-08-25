@@ -73,6 +73,23 @@ services:
         sync: false
 
   - type: cron
+    name: lotto-weekly-summary
+    # 매주 월요일 01:00 UTC = 10:00 KST (한국 시간 오전 10시)
+    schedule: "0 1 * * 1"
+    env: python
+    region: oregon
+    command: python tools/weekly_summary_cron.py
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: MONITOR_BASE_URL
+        sync: false
+
+  - type: cron
     name: lotto-health-monitor
     # 5분마다 헬스 체크 (UTC 기준)
     schedule: "*/5 * * * *"
