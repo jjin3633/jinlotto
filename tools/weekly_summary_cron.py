@@ -115,15 +115,18 @@ def get_filtered_predictions(client, draw_number: int, draw_date: str) -> List[D
         # 추첨일 파싱 (YYYY-MM-DD 형태)
         draw_datetime = datetime.strptime(draw_date, '%Y-%m-%d')
         
-        # 토요일 20:00 KST = UTC 11:00 계산
-        cutoff_utc = draw_datetime.replace(hour=11, minute=0, second=0, microsecond=0)
-        cutoff_iso = cutoff_utc.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        # 토요일 20:00 KST 계산 (새로운 데이터는 KST로 저장됨)
+        cutoff_kst = draw_datetime.replace(hour=20, minute=0, second=0, microsecond=0)
+        cutoff_utc = draw_datetime.replace(hour=11, minute=0, second=0, microsecond=0)  # 기존 UTC 데이터용
         
-        # Supabase 쿼리: 해당 회차용 + 추첨 전 생성된 예측만
+        cutoff_kst_iso = cutoff_kst.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        cutoff_utc_iso = cutoff_utc.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        
+        # Supabase 쿼리: 해당 회차용 + 추첨 전 생성된 예측만 (KST/UTC 호환)
         response = client.from_("predictions").select("*").filter(
             "generated_for", "lte", draw_date
-        ).filter(
-            "created_at", "lte", cutoff_iso
+        ).or_(
+            f"created_at.lte.{cutoff_kst_iso},created_at.lte.{cutoff_utc_iso}"
         ).execute()
         
         preds = getattr(response, "data", []) or []

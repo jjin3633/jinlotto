@@ -89,21 +89,27 @@ def get_filtered_predictions(client, draw_number: int, draw_date: str) -> List[D
         # 추첨일 파싱 (YYYY-MM-DD 형태)
         draw_datetime = datetime.strptime(draw_date, '%Y-%m-%d')
         
-        # 토요일 20:00 KST = UTC 11:00 계산
-        # KST는 UTC+9이므로, 20:00 KST = 11:00 UTC
-        cutoff_utc = draw_datetime.replace(hour=11, minute=0, second=0, microsecond=0)
-        cutoff_iso = cutoff_utc.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        # 토요일 20:00 KST 계산
+        # 새로운 데이터는 KST로 저장되므로 직접 20:00 사용
+        # 기존 UTC 데이터와의 호환성을 위해 두 조건 모두 확인
+        cutoff_kst = draw_datetime.replace(hour=20, minute=0, second=0, microsecond=0)
+        cutoff_utc = draw_datetime.replace(hour=11, minute=0, second=0, microsecond=0)  # 기존 UTC 데이터용
+        
+        cutoff_kst_iso = cutoff_kst.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        cutoff_utc_iso = cutoff_utc.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         
         print(f"📅 필터링 기준:")
         print(f"   - 회차: {draw_number}회차용 예측")
-        print(f"   - 생성시간: {cutoff_iso} 이전")
+        print(f"   - KST 생성시간: {cutoff_kst_iso} 이전")
+        print(f"   - UTC 생성시간: {cutoff_utc_iso} 이전 (기존 데이터)")
         print(f"   - 추첨일: {draw_date}")
         
         # Supabase 쿼리: 해당 회차용 + 추첨 전 생성된 예측만
+        # KST와 UTC 두 조건 모두 확인 (기존 데이터 호환성)
         response = client.from_("predictions").select("*").filter(
             "generated_for", "lte", draw_date
-        ).filter(
-            "created_at", "lte", cutoff_iso
+        ).or_(
+            f"created_at.lte.{cutoff_kst_iso},created_at.lte.{cutoff_utc_iso}"
         ).execute()
         
         preds = getattr(response, "data", []) or []
