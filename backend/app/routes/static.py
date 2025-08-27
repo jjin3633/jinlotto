@@ -133,9 +133,17 @@ async def serve_sitemap():
 
 @router.get("/rss.xml")
 async def serve_rss():
+    """RSS 피드 최적화 서빙 - Google Search Console 호환성 향상"""
     file_path = os.path.join(static_dir, "rss.xml")
     if os.path.exists(file_path):
-        return FileResponse(file_path)
+        return FileResponse(
+            file_path, 
+            media_type="application/rss+xml",
+            headers={
+                "Cache-Control": "public, max-age=1800",  # 30분 캐시
+                "X-Robots-Tag": "noindex"  # RSS 자체는 색인하지 않음
+            }
+        )
     return {"error": "File not found"}
 
 @router.get("/ads.txt")
