@@ -118,9 +118,17 @@ async def serve_robots():
 
 @router.get("/sitemap.xml")
 async def serve_sitemap():
+    """사이트맵 최적화 서빙 - Google Search Console 호환성 향상"""
     file_path = os.path.join(static_dir, "sitemap.xml")
     if os.path.exists(file_path):
-        return FileResponse(file_path)
+        return FileResponse(
+            file_path, 
+            media_type="application/xml",
+            headers={
+                "Cache-Control": "public, max-age=3600",  # 1시간 캐시
+                "X-Robots-Tag": "noindex"  # 사이트맵 자체는 색인하지 않음
+            }
+        )
     return {"error": "File not found"}
 
 @router.get("/rss.xml")
