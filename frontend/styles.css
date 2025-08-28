@@ -262,20 +262,19 @@ body {
 }
 
 .number-sets {
-    display: grid;
-    grid-template-columns: 1fr; /* 1세트 중앙 배치 */
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-    justify-items: center;
+    align-items: center;
 }
 
-/* 1세트 기준: 특별한 재배치 없음 */
-
-/* 반응형: 태블릿은 2열, 모바일은 1열 */
-@media (max-width: 899px) {
-    .number-sets { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
-}
-@media (max-width: 599px) {
-    .number-sets { grid-template-columns: 1fr; }
+/* 반응형: 태블릿 이상에서는 가로 정렬 */
+@media (min-width: 600px) {
+    .number-sets {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
 }
 
 .number-set {
