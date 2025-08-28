@@ -45,11 +45,11 @@ async def lifespan(app: FastAPI):
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         logger.error(f"DB 초기화 실패: {e}")
-    # 선택적 ML 워밍업: 첫 요청 지연 방지
+    # ML 워밍업을 비활성화하여 배포 시간 단축 (필요시 첫 요청에서 지연 처리)
     try:
-        do_warmup = os.getenv("WARMUP_ON_STARTUP", "true").strip().lower() in ("1","true","yes","y","on")
+        do_warmup = os.getenv("WARMUP_ON_STARTUP", "false").strip().lower() in ("1","true","yes","y","on")
     except Exception:
-        do_warmup = True
+        do_warmup = False
     if do_warmup:
         try:
             ds = api_module.data_service
@@ -59,6 +59,8 @@ async def lifespan(app: FastAPI):
             logger.info("ML 워밍업 완료")
         except Exception as e:
             logger.error(f"ML 워밍업 실패(무시 가능): {e}")
+    else:
+        logger.info("ML 워밍업 스킵 - 첫 요청 시 지연 발생 가능")
     yield
     # 종료 시 실행
     logger.info("로또 분석 서비스가 종료되었습니다.")

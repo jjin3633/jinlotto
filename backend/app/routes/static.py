@@ -123,7 +123,7 @@ async def serve_sitemap():
     if os.path.exists(file_path):
         return FileResponse(
             file_path, 
-해            media_type="application/xml; charset=utf-8",  # UTF-8 인코딩 명시
+            media_type="application/xml; charset=utf-8",  # UTF-8 인코딩 명시
             headers={
                 "Cache-Control": "public, max-age=3600",  # 1시간 캐시
                 "X-Robots-Tag": "noindex",  # 사이트맵 자체는 색인하지 않음
