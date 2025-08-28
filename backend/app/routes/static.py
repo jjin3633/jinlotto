@@ -123,10 +123,11 @@ async def serve_sitemap():
     if os.path.exists(file_path):
         return FileResponse(
             file_path, 
-            media_type="application/xml",
+            media_type="application/xml; charset=utf-8",  # UTF-8 인코딩 명시
             headers={
                 "Cache-Control": "public, max-age=3600",  # 1시간 캐시
-                "X-Robots-Tag": "noindex"  # 사이트맵 자체는 색인하지 않음
+                "X-Robots-Tag": "noindex",  # 사이트맵 자체는 색인하지 않음
+                "Content-Type": "application/xml; charset=utf-8"  # 추가 보장
             }
         )
     return {"error": "File not found"}
@@ -138,10 +139,11 @@ async def serve_rss():
     if os.path.exists(file_path):
         return FileResponse(
             file_path, 
-            media_type="application/rss+xml",
+            media_type="application/rss+xml; charset=utf-8",  # UTF-8 인코딩 명시
             headers={
                 "Cache-Control": "public, max-age=1800",  # 30분 캐시
-                "X-Robots-Tag": "noindex"  # RSS 자체는 색인하지 않음
+                "X-Robots-Tag": "noindex",  # RSS 자체는 색인하지 않음
+                "Content-Type": "application/rss+xml; charset=utf-8"  # 추가 보장
             }
         )
     return {"error": "File not found"}
