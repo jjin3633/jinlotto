@@ -1,0 +1,104 @@
+services:
+  - type: web
+    name: jinlotto
+    env: python
+    plan: free
+    autoDeploy: true
+    region: oregon
+    buildCommand: |
+      pip install -r requirements.txt
+      python scripts/build_frontend.py
+    startCommand: |
+      gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --worker-class uvicorn.workers.UvicornWorker --timeout 300
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.7
+      - key: CORS_ALLOW_ORIGINS
+        value: "*"
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: HOT_COLD_WINDOW
+        value: "40"
+      - key: FREQ_DECAY_HALF_LIFE_DRAWS
+        value: "80"
+      - key: CONF_BASE
+        value: "0.40"
+      - key: CONF_MIN
+        value: "0.40"
+      - key: CONF_MAX
+        value: "0.80"
+      - key: CONF_W_CONSENSUS
+        value: "0.30"
+      - key: CONF_W_HOT
+        value: "0.10"
+      - key: MERGE_MAX_UNION_FILL
+        value: "2"
+      - key: ENFORCE_ODD_EVEN_BALANCE
+        value: "true"
+      - key: ENFORCE_RANGE_COVERAGE
+        value: "true"
+      - key: MAX_CONSECUTIVE
+        value: "2"
+      - key: HOT_TOP_K
+        value: "8"
+      - key: COLD_TOP_K
+        value: "8"
+      - key: ENABLE_ML
+        value: "true"
+      - key: DETERMINISTIC_SEED
+        value: "true"
+      - key: WARMUP_ON_STARTUP
+        value: "true"
+
+  - type: cron
+    name: lotto-weekly-http-update
+    schedule: "0 23 * * 0" # 매주 일요일 23:00 UTC = 월요일 08:00 KST
+    env: python
+    region: oregon
+    command: |
+      python - <<'PY'
+      import os, requests, sys
+      base = os.environ.get('MONITOR_BASE_URL')
+      if not base:
+          sys.exit('MONITOR_BASE_URL is not set')
+      url = base.rstrip('/') + '/api/data/update'
+      r = requests.post(url, timeout=120)
+      print(r.status_code, r.text)
+      PY
+    envVars:
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: MONITOR_BASE_URL
+        sync: false
+
+  - type: cron
+    name: lotto-weekly-summary
+    # 매주 월요일 01:00 UTC = 10:00 KST (한국 시간 오전 10시)
+    schedule: "0 1 * * 1"
+    env: python
+    region: oregon
+    command: python tools/weekly_summary_cron.py
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: MONITOR_BASE_URL
+        sync: false
+
+  - type: cron
+    name: lotto-health-monitor
+    # 5분마다 헬스 체크 (UTC 기준)
+    schedule: "*/5 * * * *"
+    env: python
+    region: oregon
+    command: python backend/health_monitor.py
+    envVars:
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+      - key: MONITOR_BASE_URL
+        sync: false
+

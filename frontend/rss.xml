@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>스트레칭 로또 - 건강한 습관과 함께하는 로또</title>
+    <link>https://jinlotto.onrender.com/</link>
+    <description>스트레칭 후 AI가 추천하는 로또 번호를 받아보세요. 건강한 습관과 행운을 함께!</description>
+    <language>ko-KR</language>
+    <lastBuildDate>Wed, 27 Aug 2025 11:15:51 +0900</lastBuildDate>
+    <ttl>1440</ttl>
+    <generator>JinLotto RSS Generator</generator>
+    <atom:link href="https://jinlotto.onrender.com/rss.xml" rel="self" type="application/rss+xml"/>
+    
+    <item>
+      <title>스트레칭 로또 서비스 오픈!</title>
+      <link>https://jinlotto.onrender.com/</link>
+      <guid isPermaLink="false">jinlotto-service-open-2025</guid>
+      <description><![CDATA[
+        스트레칭 후 AI가 분석한 로또 번호를 받아보세요! 
+        • 하루 1세트 개인 맞춤 번호 추천
+        • 매주 월요일 최신 회차 당첨 결과 자동 매칭
+        • 건강한 습관 형성과 함께하는 로또 서비스
+      ]]></description>
+      <pubDate>Wed, 27 Aug 2025 11:15:51 +0900</pubDate>
+      <category>로또</category>
+      <category>건강</category>
+    </item>
+    
+    <item>
+      <title>AI 기반 로또 번호 분석 시스템</title>
+      <link>https://jinlotto.onrender.com/</link>
+      <guid isPermaLink="false">jinlotto-ai-analysis-2025</guid>
+      <description><![CDATA[
+        머신러닝을 활용한 로또 번호 분석 및 추천 시스템을 제공합니다.
+        • 과거 당첨 번호 패턴 분석
+        • 개인별 맞춤 번호 생성
+        • 실시간 당첨 결과 확인
+      ]]></description>
+      <pubDate>Wed, 27 Aug 2025 11:15:51 +0900</pubDate>
+      <category>AI</category>
+      <category>분석</category>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,33 @@
+name: Lotto weekly update
+
+on:
+  schedule:
+    # 월요일 09:00 KST = 00:00 UTC
+    - cron: "0 0 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  call-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST /api/data/update
+        env:
+          BASE_URL: ${{ secrets.BASE_URL }}
+        run: |
+          curl -sS -X POST "$BASE_URL/api/data/update" \
+            -m 120 -H "Content-Type: application/json" -w " HTTP:%{http_code}\n"
+
+      - name: Notify Slack (optional)
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then \
+            MSG="✅ lotto-weekly-update 완료 ($(date -u +'%F %T UTC'))"; \
+            curl -sS -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$MSG\"}" "$SLACK_WEBHOOK_URL"; \
+          else \
+            echo "Slack webhook not set, skipping"; \
+          fi
+
+

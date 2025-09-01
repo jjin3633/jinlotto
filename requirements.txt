@@ -1,0 +1,13 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+gunicorn==21.2.0
+pandas
+numpy
+scikit-learn
+requests==2.31.0
+beautifulsoup4==4.12.2
+python-multipart==0.0.6
+pydantic
+SQLAlchemy==2.0.31
+# psycopg2-binary는 Python 3.13에서 호환 이슈가 있어 psycopg3 바이너리 사용
+psycopg[binary]==3.2.9
