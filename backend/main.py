@@ -8,11 +8,8 @@ import logging
 import uvicorn
 from contextlib import asynccontextmanager
 import os
-from datetime import datetime, timezone
-
 from backend.app.routes.api import router as api_router
 from backend.app.routes.static import router as static_router
-from backend.app.utils.slack_notifier import post_to_slack
 from backend.app.db.session import engine
 from backend.app.db.models import Base
 from backend.app.routes import api as api_module
@@ -30,16 +27,6 @@ async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
     # 시작 시 실행
     logger.info("로또 분석 서비스가 시작되었습니다.")
-    # 서버 시작 알림 (중복 방지: 동일 컨테이너 내 다중 워커 대비 센티넬 파일 사용)
-    try:
-        tmp_dir = os.environ.get("TMPDIR") or os.environ.get("TEMP") or "/tmp"
-        sentinel_path = os.path.join(tmp_dir, "jinlotto_startup_slack_sent")
-        if not os.path.exists(sentinel_path):
-            post_to_slack("🚀 JinLotto 서버 시작")
-            with open(sentinel_path, "w", encoding="utf-8") as f:
-                f.write(datetime.now(timezone.utc).isoformat())
-    except Exception as e:
-        logger.error(f"서버 시작 알림 전송 실패(무시 가능): {e}")
     # DB 테이블 생성(마이그레이션 도구 없을 때 초기가동)
     try:
         Base.metadata.create_all(bind=engine)
@@ -64,7 +51,6 @@ async def lifespan(app: FastAPI):
     yield
     # 종료 시 실행
     logger.info("로또 분석 서비스가 종료되었습니다.")
-    post_to_slack("🛑 JinLotto 서버 종료")
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -156,10 +142,6 @@ app.include_router(static_router)
 async def global_exception_handler(request, exc):
     """전역 예외 처리"""
     logger.error(f"예상치 못한 오류 발생: {exc}")
-    try:
-        post_to_slack(f"❗ 서버 오류 발생: {str(exc)}")
-    except Exception:
-        pass
     return JSONResponse(
         status_code=500,
         content={
