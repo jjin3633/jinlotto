@@ -22,8 +22,8 @@ import random
 from datetime import datetime, timezone, timedelta
 from typing import List, Dict
 
-# 슬랙 웹훅 URL
-SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/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"
+# 슬랙 웹훅 URL (환경변수에서 가져오기)
+SLACK_WEBHOOK_URL = os.getenv("STRETCHING_SLACK_WEBHOOK_URL")
 JINLOTTO_URL = "http://43.201.75.105:8000/"
 
 def get_mz_stretching_messages() -> List[Dict]:
