@@ -93,7 +93,7 @@ def send_stretching_reminder():
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"🎯 *지금 바로 스트레칭하러 가기* 👇\n<{JINLOTTO_URL}|✨ JinLotto에서 스트레칭 & 번호받기 ✨>"
+                        "text": f"🎯 *지금 바로 스트레칭하러 가기* 👇\n<{JINLOTTO_URL}|✨ 로또 스트레칭칭에서 스트레칭 & 번호받기 ✨>"
                     },
                     "accessory": {
                         "type": "button",
