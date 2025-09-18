@@ -110,7 +110,7 @@ services:
     command: python tools/stretching_reminder.py
     envVars:
       - key: STRETCHING_SLACK_WEBHOOK_URL
-        value: "https://hooks.slack.com/services/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"
+        sync: false
 
   - type: cron
     name: stretching-reminder-11-50
@@ -121,7 +121,7 @@ services:
     command: python tools/stretching_reminder.py
     envVars:
       - key: STRETCHING_SLACK_WEBHOOK_URL
-        value: "https://hooks.slack.com/services/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"
+        sync: false
 
   - type: cron
     name: stretching-reminder-12-50
@@ -132,7 +132,7 @@ services:
     command: python tools/stretching_reminder.py
     envVars:
       - key: STRETCHING_SLACK_WEBHOOK_URL
-        value: "https://hooks.slack.com/services/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"
+        sync: false
 
   - type: cron
     name: stretching-reminder-14-50
@@ -143,7 +143,7 @@ services:
     command: python tools/stretching_reminder.py
     envVars:
       - key: STRETCHING_SLACK_WEBHOOK_URL
-        value: "https://hooks.slack.com/services/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"
+        sync: false
 
   - type: cron
     name: stretching-reminder-15-50
@@ -154,7 +154,7 @@ services:
     command: python tools/stretching_reminder.py
     envVars:
       - key: STRETCHING_SLACK_WEBHOOK_URL
-        value: "https://hooks.slack.com/services/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"
+        sync: false
 
   - type: cron
     name: stretching-reminder-16-50
@@ -165,5 +165,5 @@ services:
     command: python tools/stretching_reminder.py
     envVars:
       - key: STRETCHING_SLACK_WEBHOOK_URL
-        value: "https://hooks.slack.com/services/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"
+        sync: false
 
