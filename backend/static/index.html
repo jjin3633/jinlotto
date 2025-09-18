@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google-site-verification" content="pBpWaBqJleZoF5tvsUffoQM5D3ZEPzLQkNMqHrmlegw" />
+    <meta name="naver-site-verification" content="909e0b2b691e6810e8984d352aa94575dc5091da" />
+    <meta name="google-adsense-account" content="ca-pub-5187867776218593">
+    <title>스트레칭 로또 | 로또 번호 추천</title>
+    <meta name="description" content="스트레칭 후 로또 번호를 받아보세요. 건강한 습관과 함께하는 로또 번호 생성기">
+    <meta name="keywords" content="로또, 로또번호, 번호추천, 스트레칭, 운동, AI추천, 스트레칭로또, 로또생성기, 행운번호">
+    <link rel="canonical" href="https://jinlotto.onrender.com/">
+    <meta property="og:title" content="스트레칭 로또">
+    <meta property="og:description" content="스트레칭 후 로또 번호를 받아보세요. 건강한 습관과 함께하는 로또 번호 생성기">
+    <meta property="og:url" content="https://jinlotto.onrender.com/">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="/static/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="/static/favicon.png">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" media="all">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="all">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "스트레칭 로또",
+        "description": "스트레칭 후 로또 번호를 받아보세요. 건강한 습관과 함께하는 로또 번호 생성기",
+        "url": "https://jinlotto.onrender.com/",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Any",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "KRW"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "JinLotto"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav aria-label="메인 내비게이션" style="display:none"></nav>
+        </header>
+        <main class="hero" id="main-content" tabindex="-1">
+            <img src="/static/logo.svg" alt="JinLotto 로고" class="site-logo" />
+            <div class="hero-actions">
+                <button id="predict-btn" class="btn btn-primary" aria-label="스트레칭 후 번호받기" tabindex="0" type="button" role="button">스트레칭 후 번호받기</button>
+            </div>
+        </main>
+        <button id="feedback-open" class="feedback-fab" aria-label="의견 남기기" type="button" role="button">의견 남기기</button>
+        <div class="laurel-wrap" aria-hidden="true">
+            <img id="laurel-1" class="laurel laurel-1" src="/static/laurel1.png" alt="월계관 1" />
+            <img id="laurel-2" class="laurel laurel-2" src="/static/laurel2.png" alt="월계관 2" />
+        </div>
+        <section id="prediction-section" class="prediction-section" style="display: none;" aria-live="polite">
+            <div id="prediction-results" class="prediction-results" style="display: none;">
+                <h3>추천 번호 세트</h3>
+                <div id="number-sets" class="number-sets"></div>
+                <div id="prediction-reasoning" class="reasoning"></div>
+                <div class="good-luck" aria-live="polite">🍀 행운을 빌어요! 🍀</div>
+            </div>
+        </section>
+        <section class="ad-section" aria-label="광고 영역">
+            <div class="ad-panel">
+                <video class="ad-video" autoplay muted loop playsinline preload="auto" aria-label="광고 영상" controls>
+                    <source src="/static/Main_KR_Home.mp4" type="video/mp4" />
+                    <p>브라우저가 비디오를 지원하지 않습니다. <a href="/static/Main_KR_Home.mp4">비디오 다운로드</a></p>
+                </video>
+            </div>
+            <!-- 디스플레이광고1 -->
+            <ins class="adsbygoogle"
+                style="display:block"
+                data-ad-client="ca-pub-5187867776218593"
+                data-ad-slot="7378051623"
+                data-ad-format="auto"
+                data-full-width-responsive="true"></ins>
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5187867776218593" crossorigin="anonymous"></script>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </section>
+        <div id="loading-overlay" class="loading-overlay" style="display: none;" role="status" aria-live="polite">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                <p>분석 중...<br>조금 걸릴 수 있어요 헤헤<br>그래도 빨리 알려드릴게요!</p>
+            </div>
+        </div>
+        <div id="stretch-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="stretch-modal-title">
+            <div class="modal-content">
+                <button id="stretch-close" class="modal-close-x" aria-label="닫기" type="button">&times;</button>
+                <h3 id="stretch-modal-title">스트레칭 후 번호 받기</h3>
+                <p class="modal-desc">아래 영상을 1분 시청하면 로또 번호를 받을 수 있어요!</p>
+                <div id="stretch-video-wrap">
+                    <div id="yt-player" class="yt-player" aria-label="스트레칭 유튜브 영상"></div>
+                </div>
+                <div class="modal-timer">
+                    <span id="watch-remaining">남은 시청 시간: 60초</span>
+                </div>
+                <div class="modal-actions">
+                    <button id="stretch-done" class="btn btn-primary" aria-label="스트레칭 완료" disabled type="button">스트레칭 완료</button>
+                </div>
+            </div>
+        </div>
+        <div id="nickname-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="nickname-modal-title">
+            <div class="modal-content">
+                <button id="nickname-close" class="modal-close-x" aria-label="닫기" type="button">&times;</button>
+                <h3 id="nickname-modal-title">닉네임 입력</h3>
+                <p class="modal-desc">로또 번호를 확인하기 전에 닉네임을 입력해주세요!</p>
+                <div class="nickname-input-wrap">
+                    <input type="text" id="nickname-input" class="nickname-input" placeholder="닉네임을 입력하세요 (최대 50자)" maxlength="50" aria-label="닉네임 입력">
+                </div>
+                <div class="modal-actions">
+                    <button id="nickname-confirm" class="btn btn-primary" aria-label="번호 확인하기" type="button">번호 확인하기</button>
+                </div>
+            </div>
+        </div>
+        <div id="feedback-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="feedback-modal-title">
+            <div class="modal-content">
+                <button id="feedback-close" class="modal-close-x" aria-label="닫기" type="button">&times;</button>
+                <h3 id="feedback-modal-title">의견 남기기</h3>
+                <p class="modal-desc">서비스 개선을 위한 소중한 의견을 남겨주세요.</p>
+                <div class="feedback-body">
+                    <textarea id="feedback-input" class="feedback-input" rows="5" placeholder="의견을 입력해 주세요" aria-label="의견 입력"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button id="feedback-send" class="btn btn-primary" aria-label="전송" type="button">전송</button>
+                </div>
+            </div>
+        </div>
+        <footer style="margin-top:40px;text-align:center;font-size:12px; color:#222;">
+            Copyright ⓒ 2025 MGsolutions Inc. All rights reserved.<a href="mailto:jjin@motiphysio.com" style="color:#888;text-decoration:underline;"></a>
+        </footer>
+    </div>
+    <script src="https://www.youtube.com/iframe_api" async defer></script>
+    <script src="/static/script.js" defer></script>
+</body>
+</html>
