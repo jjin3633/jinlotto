@@ -23,7 +23,7 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Dict
 
 # 슬랙 웹훅 URL
-SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/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"
+SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/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"
 JINLOTTO_URL = "http://43.201.75.105:8000/"
 
 def get_mz_stretching_messages() -> List[Dict]:
