@@ -102,3 +102,69 @@ services:
       - key: MONITOR_BASE_URL
         sync: false
 
+  - type: cron
+    name: stretching-reminder-10-50
+    # 매일 10:50 KST = 01:50 UTC
+    schedule: "50 1 * * *"
+    env: python
+    region: oregon
+    command: python tools/stretching_reminder.py
+    envVars:
+      - key: STRETCHING_SLACK_WEBHOOK_URL
+        value: "https://hooks.slack.com/services/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"
+
+  - type: cron
+    name: stretching-reminder-11-50
+    # 매일 11:50 KST = 02:50 UTC
+    schedule: "50 2 * * *"
+    env: python
+    region: oregon
+    command: python tools/stretching_reminder.py
+    envVars:
+      - key: STRETCHING_SLACK_WEBHOOK_URL
+        value: "https://hooks.slack.com/services/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"
+
+  - type: cron
+    name: stretching-reminder-12-50
+    # 매일 12:50 KST = 03:50 UTC
+    schedule: "50 3 * * *"
+    env: python
+    region: oregon
+    command: python tools/stretching_reminder.py
+    envVars:
+      - key: STRETCHING_SLACK_WEBHOOK_URL
+        value: "https://hooks.slack.com/services/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"
+
+  - type: cron
+    name: stretching-reminder-14-50
+    # 매일 14:50 KST = 05:50 UTC
+    schedule: "50 5 * * *"
+    env: python
+    region: oregon
+    command: python tools/stretching_reminder.py
+    envVars:
+      - key: STRETCHING_SLACK_WEBHOOK_URL
+        value: "https://hooks.slack.com/services/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"
+
+  - type: cron
+    name: stretching-reminder-15-50
+    # 매일 15:50 KST = 06:50 UTC
+    schedule: "50 6 * * *"
+    env: python
+    region: oregon
+    command: python tools/stretching_reminder.py
+    envVars:
+      - key: STRETCHING_SLACK_WEBHOOK_URL
+        value: "https://hooks.slack.com/services/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"
+
+  - type: cron
+    name: stretching-reminder-16-50
+    # 매일 16:50 KST = 07:50 UTC
+    schedule: "50 7 * * *"
+    env: python
+    region: oregon
+    command: python tools/stretching_reminder.py
+    envVars:
+      - key: STRETCHING_SLACK_WEBHOOK_URL
+        value: "https://hooks.slack.com/services/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"
+
