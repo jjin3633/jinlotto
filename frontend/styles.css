@@ -603,6 +603,43 @@ body {
     margin-right: auto;
 }
 
+/* 닉네임 입력 스타일 */
+.nickname-input-wrap {
+    margin: 20px 0;
+}
+
+.nickname-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    background: #ffffff;
+}
+
+.nickname-input:focus {
+    outline: none;
+    border-color: #4285f4;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+}
+
+.nickname-input::placeholder {
+    color: #999;
+}
+
+/* 닉네임 모달을 스트레칭 모달과 동일 폭(640px)로 정렬 */
+#nickname-modal .modal-desc,
+#nickname-modal h3,
+#nickname-modal .nickname-input-wrap,
+#nickname-modal .modal-actions {
+    width: 640px;
+    max-width: 92vw;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* 월계관 아이콘 (의견 버튼과 같은 X축, 왼쪽 끝으로 배치) */
 /* 래퍼로 묶어 같이 관리: 좌우 간격 0 */
 .laurel-wrap {

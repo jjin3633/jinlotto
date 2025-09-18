@@ -32,6 +32,7 @@ class Prediction(Base):
     set_index = Column(Integer, nullable=False)
     numbers = Column(JSON, nullable=False)  # [n1..n6]
     source = Column(String(32), default="daily-fixed", nullable=False)
+    nickname = Column(String(50), nullable=True)  # 닉네임 추가
 
     user = relationship("User", back_populates="predictions")
     matches = relationship("Match", back_populates="prediction")

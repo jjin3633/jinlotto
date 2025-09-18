@@ -66,8 +66,9 @@
         </section>
         <section class="ad-section" aria-label="광고 영역">
             <div class="ad-panel">
-                <video class="ad-video" autoplay muted loop playsinline preload="auto" aria-label="광고 영상">
+                <video class="ad-video" autoplay muted loop playsinline preload="auto" aria-label="광고 영상" controls>
                     <source src="/static/Main_KR_Home.mp4" type="video/mp4" />
+                    <p>브라우저가 비디오를 지원하지 않습니다. <a href="/static/Main_KR_Home.mp4">비디오 다운로드</a></p>
                 </video>
             </div>
             <!-- 디스플레이광고1 -->
@@ -101,6 +102,19 @@
                 </div>
                 <div class="modal-actions">
                     <button id="stretch-done" class="btn btn-primary" aria-label="스트레칭 완료" disabled type="button">스트레칭 완료</button>
+                </div>
+            </div>
+        </div>
+        <div id="nickname-modal" class="modal hidden" aria-hidden="true" role="dialog" aria-labelledby="nickname-modal-title">
+            <div class="modal-content">
+                <button id="nickname-close" class="modal-close-x" aria-label="닫기" type="button">&times;</button>
+                <h3 id="nickname-modal-title">닉네임 입력</h3>
+                <p class="modal-desc">로또 번호를 확인하기 전에 닉네임을 입력해주세요!</p>
+                <div class="nickname-input-wrap">
+                    <input type="text" id="nickname-input" class="nickname-input" placeholder="닉네임을 입력하세요 (최대 50자)" maxlength="50" aria-label="닉네임 입력">
+                </div>
+                <div class="modal-actions">
+                    <button id="nickname-confirm" class="btn btn-primary" aria-label="번호 확인하기" type="button">번호 확인하기</button>
                 </div>
             </div>
         </div>

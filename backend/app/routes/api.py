@@ -621,7 +621,7 @@ async def predict_numbers(req: Request, request: PredictionRequest, db: Session 
 
         fixed = prediction_service.get_daily_fixed_predictions(df, request.num_sets, user_key=user_key)
 
-        # DB 저장 (users/predictions)
+        # DB 저장 (users/predictions) - 닉네임 포함
         try:
             user = db.query(dbm.User).filter(dbm.User.user_key == user_key).first()
             if not user:
@@ -635,6 +635,13 @@ async def predict_numbers(req: Request, request: PredictionRequest, db: Session 
             except Exception:
                 gen_for = datetime.utcnow().date()
 
+            # 닉네임 추출 (request body에서)
+            nickname = getattr(request, 'nickname', None)
+            if nickname and len(nickname.strip()) > 50:
+                nickname = nickname.strip()[:50]  # 최대 50자 제한
+            elif nickname:
+                nickname = nickname.strip()
+
             sets = fixed.get('sets', [])
             for idx, nums in enumerate(sets):
                 pred = dbm.Prediction(
@@ -643,6 +650,7 @@ async def predict_numbers(req: Request, request: PredictionRequest, db: Session 
                     set_index=idx + 1,
                     numbers=[int(x) for x in nums],
                     source=fixed.get('mode', 'daily-fixed'),
+                    nickname=nickname,  # 닉네임 저장
                 )
                 db.add(pred)
             db.commit()

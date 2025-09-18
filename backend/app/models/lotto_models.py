@@ -31,6 +31,7 @@ class PredictionRequest(BaseModel):
     method: str = "statistical"  # statistical, ml, hybrid
     num_sets: int = 5
     include_bonus: bool = False
+    nickname: Optional[str] = None  # 닉네임 추가
 
 class PredictionResult(BaseModel):
     """예측 결과 모델"""

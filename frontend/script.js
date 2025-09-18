@@ -19,6 +19,12 @@ const stretchDoneBtn = document.getElementById('stretch-done');
 const watchRemaining = document.getElementById('watch-remaining');
 const ytContainer = document.getElementById('yt-player');
 
+// 닉네임 모달 관련 요소
+const nicknameModal = document.getElementById('nickname-modal');
+const nicknameCloseBtn = document.getElementById('nickname-close');
+const nicknameConfirmBtn = document.getElementById('nickname-confirm');
+const nicknameInput = document.getElementById('nickname-input');
+
 let ytPlayer = null;
 let watchTimer = null;
 let secondsWatched = 0;
@@ -45,6 +51,7 @@ function pickRandomVideoId() {
 // 접근성/포커스 관리 상태 및 유틸리티
 let lastFocusedBeforeStretch = null;
 let lastFocusedBeforeFeedback = null;
+let lastFocusedBeforeNickname = null;
 
 function setSiblingsInert(parent, exceptions, makeInert) {
 	try {
@@ -79,10 +86,47 @@ document.addEventListener('DOMContentLoaded', function() {
     predictBtn.addEventListener('click', openStretchModal);
     if (stretchCloseBtn) stretchCloseBtn.addEventListener('click', handleStretchClose);
     if (stretchDoneBtn) stretchDoneBtn.addEventListener('click', handleStretchDone);
+    if (nicknameCloseBtn) nicknameCloseBtn.addEventListener('click', closeNicknameModal);
+    if (nicknameConfirmBtn) nicknameConfirmBtn.addEventListener('click', handleNicknameConfirm);
+    if (nicknameInput) {
+        nicknameInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleNicknameConfirm();
+            }
+        });
+    }
     if (feedbackOpenBtn) feedbackOpenBtn.addEventListener('click', openFeedbackModal);
     if (feedbackCloseBtn) feedbackCloseBtn.addEventListener('click', closeFeedbackModal);
     if (feedbackSendBtn) feedbackSendBtn.addEventListener('click', sendFeedback);
+    
+    // 비디오 자동재생 시도
+    initMainVideo();
 });
+
+// 메인 비디오 초기화 및 자동재생 시도
+function initMainVideo() {
+    const mainVideo = document.querySelector('.ad-video');
+    if (mainVideo) {
+        // 사용자 상호작용 후 재생 시도
+        const tryAutoplay = () => {
+            mainVideo.play().catch(error => {
+                console.log('자동재생 실패:', error);
+                // 자동재생 실패 시 사용자가 클릭하면 재생
+                mainVideo.addEventListener('click', () => {
+                    mainVideo.play();
+                }, { once: true });
+            });
+        };
+        
+        // 페이지 로드 후 즉시 시도
+        tryAutoplay();
+        
+        // 사용자가 페이지와 상호작용하면 재생 시도
+        document.addEventListener('click', tryAutoplay, { once: true });
+        document.addEventListener('touchstart', tryAutoplay, { once: true });
+    }
+}
 
 // 유튜브 API 로드 콜백 (전역 요구)
 window.onYouTubeIframeAPIReady = function() {
@@ -133,11 +177,12 @@ function handleStretchClose() {
 }
 
 function handleStretchDone() {
-    // 1분 시청 완료 시에만 예측 수행
+    // 1분 시청 완료 시 닉네임 입력 모달 열기
     if (stretchDoneBtn && !stretchDoneBtn.disabled) {
-        handlePrediction();
-        // 완료 후 모달 닫기
+        // 스트레칭 모달 닫기
         handleStretchClose();
+        // 닉네임 입력 모달 열기
+        openNicknameModal();
     }
 }
 
@@ -241,6 +286,56 @@ function warmUpServer() {
     }
 }
 
+// 닉네임 모달
+function openNicknameModal() {
+    if (nicknameModal) {
+        lastFocusedBeforeNickname = document.activeElement;
+        const container = document.querySelector('.container');
+        setSiblingsInert(container, [nicknameModal], true);
+
+        nicknameModal.classList.remove('hidden');
+        nicknameModal.removeAttribute('aria-hidden');
+        nicknameModal.setAttribute('aria-modal', 'true');
+        if (nicknameInput) {
+            nicknameInput.value = '';
+            nicknameInput.focus();
+        }
+    }
+}
+
+function closeNicknameModal() {
+    if (nicknameModal) {
+        try {
+            if (lastFocusedBeforeNickname && document.contains(lastFocusedBeforeNickname)) {
+                lastFocusedBeforeNickname.focus();
+            } else if (predictBtn) {
+                predictBtn.focus();
+            }
+        } catch (e) {}
+
+        nicknameModal.setAttribute('aria-hidden', 'true');
+        nicknameModal.removeAttribute('aria-modal');
+        nicknameModal.classList.add('hidden');
+
+        const container = document.querySelector('.container');
+        setSiblingsInert(container, [nicknameModal], false);
+    }
+}
+
+function handleNicknameConfirm() {
+    const nickname = nicknameInput ? nicknameInput.value.trim() : '';
+    if (!nickname) {
+        alert('닉네임을 입력해주세요!');
+        if (nicknameInput) nicknameInput.focus();
+        return;
+    }
+    
+    // 닉네임 모달 닫기
+    closeNicknameModal();
+    // 예측 수행 (닉네임 포함)
+    handlePrediction(nickname);
+}
+
 // 피드백 모달
 function openFeedbackModal() {
     if (feedbackModal) {
@@ -297,7 +392,7 @@ async function sendFeedback() {
 }
 
 // 예측 처리
-async function handlePrediction() {
+async function handlePrediction(nickname = null) {
     // 단일 통합 예측으로 고정
     const method = 'unified';
     
@@ -316,7 +411,8 @@ async function handlePrediction() {
             body: JSON.stringify({
                 method: method,
                 num_sets: 1,
-                include_bonus: false
+                include_bonus: false,
+                nickname: nickname  // 닉네임 포함
             }),
             signal: controller.signal
         });
