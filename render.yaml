@@ -7,6 +7,9 @@ services:
     region: oregon
     buildCommand: |
       pip install -r requirements.txt
+      cp frontend/index.html backend/static/index.html
+      cp frontend/script.js backend/static/script.js
+      cp frontend/styles.css backend/static/styles.css
     startCommand: |
       gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --worker-class uvicorn.workers.UvicornWorker --timeout 300
     healthCheckPath: /api/health
