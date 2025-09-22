@@ -148,24 +148,19 @@ def format_summary_message(latest_draw: Dict, update_result: Dict, match_result:
         bonus = latest_draw.get('bonus_number', '?')
         numbers_str = ', '.join(numbers) if numbers else '정보 없음'
         
-        message = f"""🎲 로또 주간 업데이트 완료 ({kst_time})
+        message = f"""🔥 로또 업뎃 떴다!! ({kst_time})
 
-📊 {draw_number}회차 ({draw_date}) 결과:
-🎯 당첨번호: [{numbers_str}] + 보너스 {bonus}
+✨ {draw_number}회차 ({draw_date}) 결과 공개~
+🎯 이번주 당첨번호: [{numbers_str}] + 보너스 {bonus}
 
-🏆 당첨자 집계:
-   1등: ?명 | 2등: ?명 | 3등: ?명 | 4등: ?명 | 5등: ?명
-
-📈 업데이트 상태: ✅ 완료
-🔍 집계 상태: ✅ 완료
-
-💡 다음 업데이트: 다음 주 월요일 09:00 KST"""
+🎊 당첨자 현황:
+   🥇 1등: ?명 | 🥈 2등: ?명 | 🥉 3등: ?명 | 4등: ?명 | 5등: ?명"""
 
         return message
         
     except Exception as e:
         log_message(f"❌ 메시지 포맷팅 오류: {e}")
-        return f"🎲 로또 주간 업데이트 완료 ({get_kst_now().strftime('%Y-%m-%d %H:%M KST')})\n⚠️ 상세 정보 처리 중 오류 발생"
+        return f"🔥 로또 업뎃 떴다!! ({get_kst_now().strftime('%Y-%m-%d %H:%M KST')})\n⚠️ 상세 정보 처리 중 오류 발생"
 
 def main():
     """메인 실행 함수"""
