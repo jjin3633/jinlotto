@@ -58,41 +58,22 @@ services:
         value: "true"
 
   - type: cron
-    name: lotto-weekly-http-update
-    schedule: "0 23 * * 0" # 매주 일요일 23:00 UTC = 월요일 08:00 KST
+    name: lotto-monday-automation
+    # 매주 월요일 00:00 UTC = 09:00 KST (한국 시간 오전 9시)
+    schedule: "0 0 * * 1"
     env: python
     region: oregon
-    command: |
-      python - <<'PY'
-      import os, requests, sys
-      base = os.environ.get('MONITOR_BASE_URL')
-      if not base:
-          sys.exit('MONITOR_BASE_URL is not set')
-      url = base.rstrip('/') + '/api/data/update'
-      r = requests.post(url, timeout=120)
-      print(r.status_code, r.text)
-      PY
+    command: python tools/monday_automation.py
     envVars:
       - key: SLACK_WEBHOOK_URL
         sync: false
       - key: MONITOR_BASE_URL
         sync: false
-
-  - type: cron
-    name: lotto-weekly-summary
-    # 매주 월요일 01:00 UTC = 10:00 KST (한국 시간 오전 10시)
-    schedule: "0 1 * * 1"
-    env: python
-    region: oregon
-    command: python tools/weekly_summary_cron.py
-    envVars:
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_ANON_KEY
         sync: false
-      - key: SLACK_WEBHOOK_URL
-        sync: false
-      - key: MONITOR_BASE_URL
+      - key: SCHEDULER_TOKEN
         sync: false
 
   - type: cron
