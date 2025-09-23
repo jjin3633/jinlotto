@@ -12,7 +12,7 @@
 - SUPABASE_URL: Supabase 프로젝트 URL
 - SUPABASE_ANON_KEY: Supabase 익명 키
 - SLACK_WEBHOOK_URL: Slack 웹훅 URL
-- MONITOR_BASE_URL: 서버 베이스 URL (기본: https://jinlotto.onrender.com)
+- MONITOR_BASE_URL: 서버 베이스 URL (기본: http://stretchinglotto.motiphysio.com/)
 
 사용법:
 $ export SUPABASE_URL=... SUPABASE_ANON_KEY=... SLACK_WEBHOOK_URL=... && python tools/accurate_weekly_match.py [회차번호]
@@ -222,7 +222,7 @@ def main():
     # 회차 정보가 없으면 최신 회차 조회
     if not draw_number:
         print("🔍 최신 회차 조회 중...")
-        monitor_base = os.getenv("MONITOR_BASE_URL", "https://jinlotto.onrender.com")
+        monitor_base = os.getenv("MONITOR_BASE_URL", "http://stretchinglotto.motiphysio.com/")
         try:
             response = requests.get(f"{monitor_base.rstrip('/')}/api/data/latest", timeout=30)
             if response.status_code == 200:

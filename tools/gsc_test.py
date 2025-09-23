@@ -18,8 +18,8 @@ def test_googlebot_access():
     ]
     
     urls = [
-        'https://jinlotto.onrender.com/sitemap.xml',
-        'https://jinlotto.onrender.com/rss.xml'
+        'http://stretchinglotto.motiphysio.com/sitemap.xml',
+        'http://stretchinglotto.motiphysio.com/rss.xml'
     ]
     
     print(f"🤖 Googlebot 접근 테스트")
@@ -65,14 +65,14 @@ def test_gsc_specific_issues():
     print("-" * 40)
     
     # 1. 사이트맵 크기 확인
-    sitemap_response = requests.get('https://jinlotto.onrender.com/sitemap.xml')
-    rss_response = requests.get('https://jinlotto.onrender.com/rss.xml')
+    sitemap_response = requests.get('http://stretchinglotto.motiphysio.com/sitemap.xml')
+    rss_response = requests.get('http://stretchinglotto.motiphysio.com/rss.xml')
     
     print(f"📄 사이트맵 크기: {len(sitemap_response.content)} bytes")
     print(f"📡 RSS 크기: {len(rss_response.content)} bytes")
     
     # 2. robots.txt에서 사이트맵 확인
-    robots_response = requests.get('https://jinlotto.onrender.com/robots.txt')
+    robots_response = requests.get('http://stretchinglotto.motiphysio.com/robots.txt')
     if 'sitemap.xml' in robots_response.text.lower():
         print("✅ robots.txt에 사이트맵 명시됨")
     else:

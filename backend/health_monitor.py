@@ -3,7 +3,7 @@
 헬스 모니터: 주기적으로 /api/health 체크 후 장애/복구를 Slack으로 통보
 
 필요 환경변수:
-  - MONITOR_BASE_URL: 배포된 서비스의 베이스 URL (예: https://jinlotto.onrender.com)
+  - MONITOR_BASE_URL: 배포된 서비스의 베이스 URL (예: http://stretchinglotto.motiphysio.com/)
   - SLACK_WEBHOOK_URL: Slack Incoming Webhook URL
 """
 import os

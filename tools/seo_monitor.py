@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 import json
 
 class SEOMonitor:
-    def __init__(self, base_url="https://jinlotto.onrender.com"):
+    def __init__(self, base_url="http://stretchinglotto.motiphysio.com/"):
         self.base_url = base_url.rstrip('/')
         self.results = {}
     

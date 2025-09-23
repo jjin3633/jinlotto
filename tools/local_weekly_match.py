@@ -8,7 +8,7 @@
  - SUPABASE_URL
  - SUPABASE_ANON_KEY
  - SLACK_WEBHOOK_URL (옵션)
- - MONITOR_BASE_URL (옵션, 기본 https://jinlotto.onrender.com)
+ - MONITOR_BASE_URL (옵션, 기본 http://stretchinglotto.motiphysio.com/)
 
 사용법(테스트):
  $ export SUPABASE_URL=... SUPABASE_ANON_KEY=... SLACK_WEBHOOK_URL=... \
@@ -52,7 +52,7 @@ def main():
     SUPABASE_URL = os.getenv("SUPABASE_URL")
     SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
     SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
-    MONITOR_BASE = os.getenv("MONITOR_BASE_URL", "https://jinlotto.onrender.com")
+    MONITOR_BASE = os.getenv("MONITOR_BASE_URL", "http://stretchinglotto.motiphysio.com/")
 
     if not SUPABASE_URL or not SUPABASE_ANON_KEY:
         print("Missing SUPABASE_URL or SUPABASE_ANON_KEY", file=sys.stderr)

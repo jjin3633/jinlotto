@@ -67,7 +67,8 @@ def _get_allowed_origins() -> list:
         return [o.strip() for o in raw.split(",") if o.strip()]
     # 기본: 프로덕션 도메인 및 로컬 개발 허용
     return [
-        "https://jinlotto.onrender.com",
+        "http://stretchinglotto.motiphysio.com/",
+        "https://stretchinglotto.motiphysio.com/",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
         "http://43.201.75.105:8000",
@@ -93,7 +94,8 @@ def _get_allowed_hosts() -> list:
     if raw:
         return [h.strip() for h in raw.split(",") if h.strip()]
     return [
-        "jinlotto.onrender.com",
+        "stretchinglotto.motiphysio.com",
+        "www.stretchinglotto.motiphysio.com",
         "localhost",
         "127.0.0.1",
         "43.201.75.105"

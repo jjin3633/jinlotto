@@ -1,4 +1,4 @@
-# 🎲 JinLotto — 스트레칭 로또 프로젝트 완전 가이드 (2025.09.19)
+# 🎲 JinLotto — 스트레칭 로또 프로젝트 완전 가이드 (2025.09.22)
 
 이 문서는 **스트레칭 로또** 프로젝트의 모든 것을 담은 **완전한 운영 가이드**입니다. 신규 개발자가 이 문서만으로도 프로젝트를 완전히 이해하고 운영할 수 있도록 작성되었습니다.
 
@@ -31,7 +31,7 @@
 ### 핵심 컨셉
 - **서비스명**: 스트레칭 로또 (JinLotto)
 - **컨셉**: 스트레칭 후 AI 추천 로또 번호를 받는 건강한 습관 형성 서비스
-- **URL**: https://jinlotto.onrender.com (메인), http://43.201.75.105:8000 (서브)
+- **URL**: http://stretchinglotto.motiphysio.com/ (메인), http://43.201.75.105:8000 (서브)
 
 ### 사용자 플로우
 1. **스트레칭 후 번호 받기** 버튼 클릭
@@ -59,6 +59,13 @@
 
 ```
 승진/1. Project/2. 번호추첨/
+├── 📁 assets/                     # 정적 에셋 (이미지, 미디어)
+│   ├── 📁 images/                 # 이미지 파일
+│   │   ├── favicon.png            # 파비콘
+│   │   ├── laurel1.png, laurel2.png # 로렐 장식 이미지
+│   │   └── logo.svg               # 로고 SVG
+│   └── 📁 media/
+│       └── Main_KR_Home.mp4       # 메인 비디오
 ├── 📁 backend/                    # 백엔드 애플리케이션
 │   ├── 📁 app/
 │   │   ├── 📁 db/                 # 데이터베이스 모델 및 세션
@@ -70,52 +77,65 @@
 │   │   │   ├── api.py             # 메인 API 엔드포인트 (/predict, /health 등)
 │   │   │   └── static.py          # 정적 파일 서빙 (SEO 최적화)
 │   │   ├── 📁 services/           # 비즈니스 로직
-│   │   │   ├── data_service.py    # 로또 데이터 수집/전처리
-│   │   │   ├── prediction_service.py # ML 예측 서비스 (핵심 로직)
 │   │   │   ├── analysis_service.py # 통계 분석
-│   │   │   └── match_service.py   # 당첨 매칭 로직
+│   │   │   ├── data_service.py    # 로또 데이터 수집/전처리
+│   │   │   ├── match_service.py   # 당첨 매칭 로직
+│   │   │   └── prediction_service.py # ML 예측 서비스 (핵심 로직)
 │   │   └── 📁 utils/
 │   │       └── slack_notifier.py  # 슬랙 알림 헬퍼
 │   ├── 📁 data/                   # 로컬 데이터
 │   │   ├── app.db                 # SQLite (로컬 개발용)
-│   │   ├── lotto_data.csv         # 로또 회차 데이터
-│   │   └── 📁 daily_recommendations/ # 사용자별 일일 추천 캐시
+│   │   └── lotto_data.csv         # 로또 회차 데이터 (1-1190회차)
 │   ├── 📁 static/                 # 배포된 정적 파일 (frontend에서 복사됨)
 │   │   ├── index.html             # 메인 페이지 (닉네임 모달 포함)
 │   │   ├── script.js              # 프론트엔드 로직 (YouTube API, 닉네임 처리)
 │   │   ├── styles.css             # 스타일시트 (반응형 디자인)
-│   │   ├── robots.txt             # SEO 크롤링 규칙 (Allow: /)
-│   │   ├── sitemap.xml            # 사이트맵
-│   │   ├── rss.xml                # RSS 피드
-│   │   └── [미디어 파일들]
-│   └── main.py                    # FastAPI 앱 인스턴스
+│   │   ├── robots.txt, sitemap.xml, rss.xml # SEO 파일들
+│   │   └── [미디어 파일들]         # 이미지, 비디오 등
+│   ├── batch_update.py            # 로또 데이터 배치 업데이트
+│   ├── health_monitor.py          # 헬스 모니터링
+│   ├── main.py                    # FastAPI 앱 인스턴스
+│   ├── test_api.py, test_prediction.py # 테스트 파일
+│   └── [기타 설정 파일들]
 ├── 📁 frontend/                   # 프론트엔드 소스 (개발용)
 │   ├── index.html                 # 메인 HTML (닉네임 모달 구조 포함)
 │   ├── script.js                  # JavaScript 로직 (사용자 플로우)
 │   ├── styles.css                 # CSS 스타일 (닉네임 모달 스타일 포함)
-│   └── [SEO 파일들]
+│   └── [SEO 파일들]               # robots.txt, sitemap.xml, rss.xml 등
 ├── 📁 models/                     # ML 모델 파일
-│   ├── position_0_clf.pkl         # 1번 자리 분류기
-│   ├── position_1_clf.pkl         # 2번 자리 분류기
-│   ├── ...                        # 3-6번 자리 분류기
-│   └── [튜닝된 모델들]
+│   ├── position_0_clf.pkl         # 1번 자리 분류기 (기본)
+│   ├── position_0_clf_tuned.pkl   # 1번 자리 분류기 (튜닝됨)
+│   ├── position_1-5_clf.pkl       # 2-6번 자리 분류기들
+│   ├── position_1-5_clf_tuned.pkl # 2-6번 자리 분류기들 (튜닝됨)
+│   └── seq_position_0-5.pkl       # 시퀀셜 모델들
 ├── 📁 scripts/                    # ML 학습/평가 스크립트
+│   ├── build_frontend.py          # 프론트엔드 빌드 스크립트
 │   ├── train_classifiers.py       # 모델 학습
 │   ├── tune_classifiers.py        # 하이퍼파라미터 튜닝
-│   └── evaluate_models.py         # 모델 평가
+│   ├── train_sequential_models.py # 시퀀셜 모델 학습
+│   ├── evaluate_models.py         # 모델 평가
+│   ├── show_proba_shap.py         # SHAP 분석
+│   └── evaluation_results.csv     # 평가 결과
 ├── 📁 tools/                      # 운영 도구
+│   ├── monday_automation.py       # 🆕 월요일 9시 통합 자동화 (MZ 스타일)
 │   ├── stretching_reminder.py     # 스트레칭 알림봇 (MZ 감성)
 │   ├── weekly_summary_cron.py     # 주간 당첨 결과 요약
 │   ├── accurate_weekly_match.py   # 정확한 매칭 로직
-│   └── [SEO 디버그 도구들]
+│   ├── local_weekly_match.py      # 로컬 매칭 테스트
+│   ├── supabase_predict_summary.py # Supabase 예측 요약
+│   └── [SEO 디버그 도구들]        # seo_monitor.py, robots_debug.py 등
 ├── 📁 docs/                       # 문서
 │   ├── API_SPEC.md                # API 명세
 │   ├── DATA_SCHEMA.md             # 데이터 스키마
+│   ├── DEPLOY_RUNBOOK.md          # 배포 런북
+│   ├── ML_MODEL_SPEC.md           # ML 모델 명세
 │   └── [기타 문서들]
+├── deploy_to_server.ps1/.sh       # 서버 배포 스크립트
 ├── main.py                        # 루트 진입점 (Render용)
-├── render.yaml                    # Render 배포 설정 (Python 빌드 스크립트)
+├── render.yaml                    # Render 배포 설정 (월요일 9시 통합 자동화)
 ├── requirements.txt               # Python 의존성
-└── PROJECT_OVERVIEW_NEW.md        # 이 문서
+├── PROJECT_OVERVIEW.md            # 이 문서
+└── README.md                      # 프로젝트 개요
 ```
 
 ---
@@ -542,30 +562,35 @@ def kst_now():
 
 ### Render Cron Jobs (7개)
 
-#### 1. 주간 데이터 업데이트
+#### 1. 월요일 9시 통합 자동화 🆕
 ```yaml
 - type: cron
-  name: lotto-weekly-http-update
-  schedule: "0 23 * * 0"  # 매주 일요일 23:00 UTC = 월요일 08:00 KST
-  command: |
-    python - <<'PY'
-    import os, requests, sys
-    base = os.environ.get('MONITOR_BASE_URL')
-    url = base.rstrip('/') + '/api/data/update'
-    r = requests.post(url, timeout=120)
-    print(r.status_code, r.text)
-    PY
+  name: lotto-monday-automation
+  # 매주 월요일 00:00 UTC = 09:00 KST (한국 시간 오전 9시)
+  schedule: "0 0 * * 1"
+  env: python
+  region: oregon
+  command: python tools/monday_automation.py
+  envVars:
+    - key: SLACK_WEBHOOK_URL
+      sync: false
+    - key: MONITOR_BASE_URL
+      sync: false
+    - key: SUPABASE_URL
+      sync: false
+    - key: SUPABASE_ANON_KEY
+      sync: false
+    - key: SCHEDULER_TOKEN
+      sync: false
 ```
 
-#### 2. 주간 당첨 결과 요약
-```yaml
-- type: cron
-  name: lotto-weekly-summary
-  schedule: "0 1 * * 1"  # 매주 월요일 01:00 UTC = 10:00 KST
-  command: python tools/weekly_summary_cron.py
-```
+**통합 작업 내용**:
+1. 최신 로또 번호 업데이트
+2. 당첨자 집계 실행
+3. MZ 스타일 슬랙 알림 전송
+4. 오류 처리 및 상세 로깅
 
-#### 3. 헬스 모니터링
+#### 2. 헬스 모니터링
 ```yaml
 - type: cron
   name: lotto-health-monitor
@@ -573,7 +598,7 @@ def kst_now():
   command: python backend/health_monitor.py
 ```
 
-#### 4. 스트레칭 알림 (6개 작업)
+#### 3. 스트레칭 알림 (6개 작업)
 ```yaml
 # 10:50, 11:50, 12:50, 14:50, 15:50, 16:50 KST
 - type: cron
@@ -636,7 +661,7 @@ SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../...
 STRETCHING_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../...
 
 # 모니터링
-MONITOR_BASE_URL=https://jinlotto.onrender.com
+MONITOR_BASE_URL=http://stretchinglotto.motiphysio.com/
 
 # ML 설정
 ENABLE_ML=true
@@ -678,7 +703,7 @@ if not SLACK_WEBHOOK_URL:
 <title>스트레칭 로또 | 로또 번호 추천</title>
 <meta name="description" content="스트레칭 후 로또 번호를 받아보세요. 건강한 습관과 함께하는 로또 번호 생성기">
 <meta name="keywords" content="로또, 로또번호, 번호추천, 스트레칭, 운동, AI추천">
-<link rel="canonical" href="https://jinlotto.onrender.com/">
+<link rel="canonical" href="http://stretchinglotto.motiphysio.com/">
 
 <!-- 구조화 데이터 -->
 <script type="application/ld+json">
@@ -687,7 +712,7 @@ if not SLACK_WEBHOOK_URL:
   "@type": "WebApplication",
   "name": "스트레칭 로또",
   "description": "스트레칭 후 로또 번호를 받아보세요...",
-  "url": "https://jinlotto.onrender.com/"
+  "url": "http://stretchinglotto.motiphysio.com/"
 }
 </script>
 ```
@@ -702,7 +727,7 @@ Allow: /sitemap.xml
 Allow: /rss.xml
 Allow: /robots.txt
 
-Sitemap: https://jinlotto.onrender.com/sitemap.xml
+Sitemap: http://stretchinglotto.motiphysio.com/sitemap.xml
 ```
 
 #### sitemap.xml
@@ -710,7 +735,7 @@ Sitemap: https://jinlotto.onrender.com/sitemap.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://jinlotto.onrender.com/</loc>
+    <loc>http://stretchinglotto.motiphysio.com/</loc>
     <lastmod>2025-08-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -724,7 +749,7 @@ Sitemap: https://jinlotto.onrender.com/sitemap.xml
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>스트레칭 로또 - 건강한 습관과 함께하는 로또</title>
-    <link>https://jinlotto.onrender.com/</link>
+    <link>http://stretchinglotto.motiphysio.com/</link>
     <description>스트레칭 후 AI가 추천하는 로또 번호를 받아보세요.</description>
     <lastBuildDate>Wed, 27 Aug 2025 11:15:51 +0900</lastBuildDate>
   </channel>
@@ -732,8 +757,8 @@ Sitemap: https://jinlotto.onrender.com/sitemap.xml
 ```
 
 ### Google Search Console 설정
-- **사이트맵 제출**: `https://jinlotto.onrender.com/sitemap.xml`
-- **RSS 피드**: `https://jinlotto.onrender.com/rss.xml`
+- **사이트맵 제출**: `http://stretchinglotto.motiphysio.com/sitemap.xml`
+- **RSS 피드**: `http://stretchinglotto.motiphysio.com/rss.xml`
 - **소유권 확인**: `<meta name="google-site-verification" content="..."/>`
 
 ### SEO 디버그 도구
@@ -871,9 +896,34 @@ def generate_weekly_summary():
 
 ---
 
-## 📈 최근 주요 변경사항 (2025.09.19 기준)
+## 📈 최근 주요 변경사항 (2025.09.22 기준)
 
-### 1. 닉네임 기능 추가 (2025.09.18-19) 🆕
+### 1. 월요일 9시 통합 자동화 구현 (2025.09.22) 🔥
+**변경사항**:
+- **통합 스크립트**: `tools/monday_automation.py` 새로 생성
+- **스케줄 통합**: 기존 08:00 + 10:00 → 09:00 KST 단일 실행
+- **MZ 스타일 알림**: "🔥 로또 업뎃 떴다!!" 메시지로 변경
+- **render.yaml**: `lotto-monday-automation` 크론 작업으로 통합
+
+**구현 세부사항**:
+```python
+# tools/monday_automation.py - MZ 스타일 메시지
+message = f"""🔥 로또 업뎃 떴다!! ({kst_time})
+
+✨ {draw_number}회차 ({draw_date}) 결과 공개~
+🎯 이번주 당첨번호: [{numbers_str}] + 보너스 {bonus}
+
+🎊 당첨자 현황:
+   🥇 1등: ?명 | 🥈 2등: ?명 | 🥉 3등: ?명 | 4등: ?명 | 5등: ?명"""
+```
+
+### 2. 프로젝트 정리 및 최적화 (2025.09.22) 🧹
+**정리된 항목**:
+- **불필요한 파일 삭제**: 임시 파일, 캐시 폴더, 가상환경 제거
+- **파일 구조 정리**: 현재 구조에 맞게 문서 업데이트
+- **배포 최적화**: 정리된 구조로 배포 속도 향상
+
+### 3. 닉네임 기능 추가 (2025.09.18-19) 🆕
 **변경사항**:
 - **DB 스키마**: `predictions` 테이블에 `nickname VARCHAR(50)` 컬럼 추가
 - **API**: `PredictionRequest`에 `nickname` 필드 추가
@@ -904,7 +954,7 @@ pred = dbm.Prediction(
 )
 ```
 
-### 2. 메인 비디오 자동재생 개선 (2025.09.19) 🎥
+### 4. 메인 비디오 자동재생 개선 (2025.09.19) 🎥
 **문제**: 브라우저 자동재생 정책으로 메인 비디오 재생 안됨
 **해결**:
 - `controls` 속성 추가로 사용자 수동 재생 가능
@@ -919,7 +969,7 @@ pred = dbm.Prediction(
 </video>
 ```
 
-### 3. 배포 파이프라인 최적화 (2025.09.19) 🚀
+### 5. 배포 파이프라인 최적화 (2025.09.19) 🚀
 **문제**: `render.yaml`의 `buildCommand`가 구버전 파일로 덮어씀
 **해결**: Python `shutil.copy2()` 사용으로 크로스 플랫폼 호환성 확보
 
@@ -931,7 +981,7 @@ buildCommand: |
 
 # render.yaml (현재)
 buildCommand: |
-  pip install -r requirements.txt
+pip install -r requirements.txt
   python -c "
   import shutil
   shutil.copy2('frontend/index.html', 'backend/static/index.html')
@@ -941,7 +991,7 @@ buildCommand: |
   "
 ```
 
-### 4. 슬랙 웹훅 보안 강화 (2025.09.18) 🔒
+### 6. 슬랙 웹훅 보안 강화 (2025.09.18) 🔒
 **문제**: 하드코딩된 웹훅 URL이 GitHub에 노출되어 Slack에서 무효화
 **해결**: 모든 웹훅 URL을 환경변수로 이동
 
@@ -960,19 +1010,18 @@ envVars:
     sync: false  # Render Dashboard에서 관리
 ```
 
-### 5. 스트레칭 알림봇 구현 (2025.09.18) 💪
+### 7. 스트레칭 알림봇 구현 (2025.09.18) 💪
 **기능**: 매시간 50분 MZ 감성 스트레칭 알림
 **시간**: 10:50, 11:50, 12:50, 14:50, 15:50, 16:50 KST
 **메시지**: 랜덤 MZ 스타일 메시지 + 서비스 링크
 
-### 6. SEO 최적화 완료 (2025.08.27) 📊
+### 8. SEO 최적화 완료 (2025.08.27) 📊
 **해결된 문제**:
 - Google Search Console 사이트맵/RSS 크롤링 오류
 - `robots.txt`: `Disallow: /` → `Allow: /`로 변경
 - RSS 피드: `pubDate` 1970년 오류 → 현재 날짜로 수정
 - 메타 태그: 구조화 데이터 및 소셜 미디어 태그 추가
 
-### 7. 타임존 일관성 확보 (2025.08.25) ⏰
 **문제**: UTC/KST 혼재로 인한 데이터 불일치
 **해결**: 모든 시간을 KST 기준으로 통일
 **적용**: `kst_now()` 함수로 timezone-naive datetime 저장
@@ -1067,7 +1116,7 @@ CREATE POLICY "Temporary allow all" ON predictions FOR ALL TO public USING (true
   - [ ] `SLACK_WEBHOOK_URL`, `STRETCHING_SLACK_WEBHOOK_URL`
   - [ ] `MONITOR_BASE_URL`
 - [ ] **Supabase RLS**: 모든 테이블에 적절한 RLS 정책 적용
-- [ ] **배포 상태 확인**: https://jinlotto.onrender.com 정상 작동 확인
+- [ ] **배포 상태 확인**: http://stretchinglotto.motiphysio.com/ 정상 작동 확인
 - [ ] **닉네임 기능 확인**: 스트레칭 → 닉네임 입력 → 번호 확인 플로우 테스트
 
 ### 📊 24시간 모니터링 (우선순위 2)
@@ -1151,7 +1200,7 @@ git push origin main
 python tools/seo_monitor.py
 
 # 헬스 체크
-curl https://jinlotto.onrender.com/api/health
+curl http://stretchinglotto.motiphysio.com/api/health
 
 # 스트레칭 알림 테스트
 python tools/stretching_reminder.py
@@ -1191,7 +1240,7 @@ print('✅ Files copied')
 - **Google Search Console**: SEO 모니터링용
 
 ### 중요 URL
-- **메인 서비스**: https://jinlotto.onrender.com
+- **메인 서비스**: http://stretchinglotto.motiphysio.com/
 - **서브 서비스**: http://43.201.75.105:8000
 - **Render Dashboard**: https://dashboard.render.com
 - **Supabase Dashboard**: https://supabase.com/dashboard
@@ -1201,7 +1250,9 @@ print('✅ Files copied')
 
 ## 🔄 버전 관리
 
-**현재 버전**: v2.1.0 (2025.09.19)
+**현재 버전**: v2.2.0 (2025.09.22)
+- 🔥 월요일 9시 통합 자동화 구현 (MZ 스타일 알림)
+- 🧹 프로젝트 정리 및 최적화 (불필요한 파일 제거)
 - ✨ 닉네임 기능 추가 (사용자 플로우 개선)
 - 🎥 메인 비디오 자동재생 개선 (브라우저 호환성)
 - 🚀 배포 파이프라인 최적화 (Python 빌드 스크립트)
@@ -1243,4 +1294,4 @@ print('✅ Files copied')
 
 ---
 
-*마지막 업데이트: 2025.09.19 - 닉네임 기능 및 배포 최적화 완료*
+*마지막 업데이트: 2025.09.22 - 월요일 9시 통합 자동화 및 프로젝트 정리 완료*

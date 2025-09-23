@@ -357,7 +357,7 @@ async def match_supabase_and_notify(db: Session = Depends(get_session)):
         preds = getattr(preds_res, "data", []) or []
 
         # 최신 회차는 서비스의 /api/data/latest 호출 사용
-        monitor_base = os.getenv("MONITOR_BASE_URL", "https://jinlotto.onrender.com")
+        monitor_base = os.getenv("MONITOR_BASE_URL", "http://stretchinglotto.motiphysio.com/")
         try:
             r = requests.get(f"{monitor_base.rstrip('/')}/api/data/latest", timeout=30)
             r.raise_for_status()

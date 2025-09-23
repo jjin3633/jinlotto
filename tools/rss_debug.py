@@ -12,7 +12,7 @@ from email.utils import formatdate
 
 def check_rss_accessibility():
     """RSS 피드 접근성 상세 확인"""
-    url = "https://jinlotto.onrender.com/rss.xml"
+    url = "http://stretchinglotto.motiphysio.com/rss.xml"
     
     print(f"🔍 RSS 피드 디버깅: {url}")
     print("=" * 60)
@@ -143,17 +143,17 @@ def generate_improved_rss():
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>스트레칭 로또 - 건강한 습관과 함께하는 로또</title>
-    <link>https://jinlotto.onrender.com/</link>
+    <link>http://stretchinglotto.motiphysio.com/</link>
     <description>스트레칭 후 AI가 추천하는 로또 번호를 받아보세요. 건강한 습관과 행운을 함께!</description>
     <language>ko-KR</language>
     <lastBuildDate>{current_date}</lastBuildDate>
     <ttl>1440</ttl>
     <generator>JinLotto RSS Generator</generator>
-    <atom:link href="https://jinlotto.onrender.com/rss.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="http://stretchinglotto.motiphysio.com/rss.xml" rel="self" type="application/rss+xml"/>
     
     <item>
       <title>스트레칭 로또 서비스 오픈!</title>
-      <link>https://jinlotto.onrender.com/</link>
+      <link>http://stretchinglotto.motiphysio.com/</link>
       <guid isPermaLink="false">jinlotto-service-open-2025</guid>
       <description><![CDATA[
         스트레칭 후 AI가 분석한 로또 번호를 받아보세요! 
@@ -168,7 +168,7 @@ def generate_improved_rss():
     
     <item>
       <title>AI 기반 로또 번호 분석 시스템</title>
-      <link>https://jinlotto.onrender.com/</link>
+      <link>http://stretchinglotto.motiphysio.com/</link>
       <guid isPermaLink="false">jinlotto-ai-analysis-2025</guid>
       <description><![CDATA[
         머신러닝을 활용한 로또 번호 분석 및 추천 시스템을 제공합니다.
