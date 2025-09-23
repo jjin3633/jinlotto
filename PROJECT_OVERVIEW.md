@@ -31,7 +31,7 @@
 ### 핵심 컨셉
 - **서비스명**: 스트레칭 로또 (JinLotto)
 - **컨셉**: 스트레칭 후 AI 추천 로또 번호를 받는 건강한 습관 형성 서비스
-- **URL**: http://stretchinglotto.motiphysio.com/ (메인), http://43.201.75.105:8000 (서브)
+- **URL**: https://stretchinglotto.motiphysio.com/ (메인), http://43.201.75.105:8000 (서브)
 
 ### 사용자 플로우
 1. **스트레칭 후 번호 받기** 버튼 클릭
@@ -661,7 +661,7 @@ SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../...
 STRETCHING_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T.../B.../...
 
 # 모니터링
-MONITOR_BASE_URL=http://stretchinglotto.motiphysio.com/
+MONITOR_BASE_URL=https://stretchinglotto.motiphysio.com/
 
 # ML 설정
 ENABLE_ML=true
@@ -703,7 +703,7 @@ if not SLACK_WEBHOOK_URL:
 <title>스트레칭 로또 | 로또 번호 추천</title>
 <meta name="description" content="스트레칭 후 로또 번호를 받아보세요. 건강한 습관과 함께하는 로또 번호 생성기">
 <meta name="keywords" content="로또, 로또번호, 번호추천, 스트레칭, 운동, AI추천">
-<link rel="canonical" href="http://stretchinglotto.motiphysio.com/">
+<link rel="canonical" href="https://stretchinglotto.motiphysio.com/">
 
 <!-- 구조화 데이터 -->
 <script type="application/ld+json">
@@ -712,7 +712,7 @@ if not SLACK_WEBHOOK_URL:
   "@type": "WebApplication",
   "name": "스트레칭 로또",
   "description": "스트레칭 후 로또 번호를 받아보세요...",
-  "url": "http://stretchinglotto.motiphysio.com/"
+  "url": "https://stretchinglotto.motiphysio.com/"
 }
 </script>
 ```
@@ -727,7 +727,7 @@ Allow: /sitemap.xml
 Allow: /rss.xml
 Allow: /robots.txt
 
-Sitemap: http://stretchinglotto.motiphysio.com/sitemap.xml
+Sitemap: https://stretchinglotto.motiphysio.com/sitemap.xml
 ```
 
 #### sitemap.xml
@@ -735,7 +735,7 @@ Sitemap: http://stretchinglotto.motiphysio.com/sitemap.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>http://stretchinglotto.motiphysio.com/</loc>
+    <loc>https://stretchinglotto.motiphysio.com/</loc>
     <lastmod>2025-08-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -749,7 +749,7 @@ Sitemap: http://stretchinglotto.motiphysio.com/sitemap.xml
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>스트레칭 로또 - 건강한 습관과 함께하는 로또</title>
-    <link>http://stretchinglotto.motiphysio.com/</link>
+    <link>https://stretchinglotto.motiphysio.com/</link>
     <description>스트레칭 후 AI가 추천하는 로또 번호를 받아보세요.</description>
     <lastBuildDate>Wed, 27 Aug 2025 11:15:51 +0900</lastBuildDate>
   </channel>
@@ -757,8 +757,8 @@ Sitemap: http://stretchinglotto.motiphysio.com/sitemap.xml
 ```
 
 ### Google Search Console 설정
-- **사이트맵 제출**: `http://stretchinglotto.motiphysio.com/sitemap.xml`
-- **RSS 피드**: `http://stretchinglotto.motiphysio.com/rss.xml`
+- **사이트맵 제출**: `https://stretchinglotto.motiphysio.com/sitemap.xml`
+- **RSS 피드**: `https://stretchinglotto.motiphysio.com/rss.xml`
 - **소유권 확인**: `<meta name="google-site-verification" content="..."/>`
 
 ### SEO 디버그 도구
@@ -1116,7 +1116,7 @@ CREATE POLICY "Temporary allow all" ON predictions FOR ALL TO public USING (true
   - [ ] `SLACK_WEBHOOK_URL`, `STRETCHING_SLACK_WEBHOOK_URL`
   - [ ] `MONITOR_BASE_URL`
 - [ ] **Supabase RLS**: 모든 테이블에 적절한 RLS 정책 적용
-- [ ] **배포 상태 확인**: http://stretchinglotto.motiphysio.com/ 정상 작동 확인
+- [ ] **배포 상태 확인**: https://stretchinglotto.motiphysio.com/ 정상 작동 확인
 - [ ] **닉네임 기능 확인**: 스트레칭 → 닉네임 입력 → 번호 확인 플로우 테스트
 
 ### 📊 24시간 모니터링 (우선순위 2)
@@ -1200,7 +1200,7 @@ git push origin main
 python tools/seo_monitor.py
 
 # 헬스 체크
-curl http://stretchinglotto.motiphysio.com/api/health
+curl https://stretchinglotto.motiphysio.com/api/health
 
 # 스트레칭 알림 테스트
 python tools/stretching_reminder.py
@@ -1240,7 +1240,7 @@ print('✅ Files copied')
 - **Google Search Console**: SEO 모니터링용
 
 ### 중요 URL
-- **메인 서비스**: http://stretchinglotto.motiphysio.com/
+- **메인 서비스**: https://stretchinglotto.motiphysio.com/
 - **서브 서비스**: http://43.201.75.105:8000
 - **Render Dashboard**: https://dashboard.render.com
 - **Supabase Dashboard**: https://supabase.com/dashboard

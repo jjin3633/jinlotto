@@ -11,7 +11,7 @@ import json
 
 def check_sitemap_accessibility():
     """사이트맵 접근성 상세 확인"""
-    url = "http://stretchinglotto.motiphysio.com/sitemap.xml"
+    url = "https://stretchinglotto.motiphysio.com/sitemap.xml"
     
     print(f"🔍 사이트맵 디버깅: {url}")
     print("=" * 60)
@@ -75,7 +75,7 @@ def check_sitemap_accessibility():
         
         # 5. robots.txt 확인
         print("\n4️⃣ robots.txt 확인...")
-        robots_url = "http://stretchinglotto.motiphysio.com/robots.txt"
+        robots_url = "https://stretchinglotto.motiphysio.com/robots.txt"
         robots_response = requests.get(robots_url, timeout=10)
         
         if robots_response.status_code == 200:
@@ -140,7 +140,7 @@ def generate_improved_sitemap():
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   <url>
-    <loc>http://stretchinglotto.motiphysio.com/</loc>
+    <loc>https://stretchinglotto.motiphysio.com/</loc>
     <lastmod>{}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>

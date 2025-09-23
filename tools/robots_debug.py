@@ -9,7 +9,7 @@ from datetime import datetime
 
 def check_robots_txt():
     """robots.txt 상세 확인"""
-    url = "http://stretchinglotto.motiphysio.com/robots.txt"
+    url = "https://stretchinglotto.motiphysio.com/robots.txt"
     
     print(f"🤖 robots.txt 디버깅: {url}")
     print("=" * 60)
@@ -72,9 +72,9 @@ def test_specific_urls():
     print("-" * 40)
     
     test_urls = [
-        'http://stretchinglotto.motiphysio.com/',
-        'http://stretchinglotto.motiphysio.com/sitemap.xml',
-        'http://stretchinglotto.motiphysio.com/rss.xml'
+        'https://stretchinglotto.motiphysio.com/',
+        'https://stretchinglotto.motiphysio.com/sitemap.xml',
+        'https://stretchinglotto.motiphysio.com/rss.xml'
     ]
     
     for url in test_urls:
@@ -101,7 +101,7 @@ Allow: /rss.xml
 Allow: /robots.txt
 
 # 사이트맵 위치 선언
-Sitemap: http://stretchinglotto.motiphysio.com/sitemap.xml
+Sitemap: https://stretchinglotto.motiphysio.com/sitemap.xml
 """
     
     print("권장 robots.txt 내용:")

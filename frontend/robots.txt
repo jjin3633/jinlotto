@@ -7,5 +7,5 @@ Allow: /rss.xml
 Allow: /robots.txt
 
 # 사이트맵 위치 선언
-Sitemap: http://stretchinglotto.motiphysio.com/sitemap.xml
-rss : http://stretchinglotto.motiphysio.com/rss.xml
+Sitemap: https://stretchinglotto.motiphysio.com/sitemap.xml
+rss : https://stretchinglotto.motiphysio.com/rss.xml

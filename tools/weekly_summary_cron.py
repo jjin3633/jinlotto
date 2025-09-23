@@ -11,7 +11,7 @@
 - SUPABASE_URL: Supabase 프로젝트 URL
 - SUPABASE_ANON_KEY: Supabase 익명 키  
 - SLACK_WEBHOOK_URL: Slack 웹훅 URL
- - MONITOR_BASE_URL: 서버 베이스 URL (기본: http://stretchinglotto.motiphysio.com/)
+ - MONITOR_BASE_URL: 서버 베이스 URL (기본: https://stretchinglotto.motiphysio.com/)
 
 Render Cron 설정:
 schedule: "0 1 * * 1"  # 매주 월요일 01:00 UTC = 10:00 KST
@@ -56,7 +56,7 @@ def get_latest_draw_info() -> Optional[Dict]:
     """최신 회차 정보 조회"""
     try:
         # 서버 API에서 최신 회차 조회
-        monitor_base = os.getenv("MONITOR_BASE_URL", "http://stretchinglotto.motiphysio.com/")
+        monitor_base = os.getenv("MONITOR_BASE_URL", "https://stretchinglotto.motiphysio.com/")
         response = requests.get(f"{monitor_base.rstrip('/')}/api/data/latest", timeout=30)
         
         if response.status_code == 200:
