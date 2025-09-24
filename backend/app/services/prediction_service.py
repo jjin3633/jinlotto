@@ -66,7 +66,8 @@ class PredictionService:
         # cache for models loaded from disk keyed by date
         self._loaded_models_by_date: Dict[str, List[Any]] = {}
         # background prediction job queue and tracking
-        self._job_queue: "queue.Queue[Tuple[str,int]]" = queue.Queue()
+        # (job_key, user_key, num_sets)
+        self._job_queue: "queue.Queue[Tuple[str,str,int]]" = queue.Queue()
         self._pending_jobs: set = set()
         self._job_lock = threading.Lock()
         self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
@@ -132,12 +133,8 @@ class PredictionService:
                         path = tuned_path if os.path.exists(tuned_path) else default_path
                         if os.path.exists(path):
                             try:
-                                # mmap_mode can reduce memory peak for large models
-                                try:
-                                    models_for_today[i] = joblib.load(path, mmap_mode='r')
-                                except TypeError:
-                                    # older joblib may not accept mmap_mode, fallback
-                                    models_for_today[i] = joblib.load(path)
+                                # Avoid memmap to prevent too many open files; load fully in memory
+                                models_for_today[i] = joblib.load(path)
                             except Exception as ex:
                                 logger.exception(f"Failed to load model {path}: {ex}")
                                 models_for_today[i] = None
@@ -263,13 +260,10 @@ class PredictionService:
             # 2) ML 기반 예측(실패 시 통계 대체)
             #    품질 우선: ML 사용. 캐시 없으면 내부에서 학습 수행(워밍업이 선행되면 빠름)
             try:
-                # 우선 운영용 순차 예측(각 포지션 예측값을 다음 포지션 입력으로 사용)
-                ml_sets = self.ml_prediction_sequential(df, num_sets)
+                # 우선 ML 일반 예측 사용. (순차 예측 메서드가 없을 수 있어 안전 경로)
+                ml_sets = self.ml_prediction(df, num_sets)
             except Exception:
-                try:
-                    ml_sets = self.ml_prediction(df, num_sets)
-                except Exception:
-                    ml_sets = stat_sets
+                ml_sets = stat_sets
 
             # 3) 빈도 상위/하위(핫/콜드) 계산
             frequency = self._calculate_frequency(df, decay_half_life=self.freq_decay_half_life)
