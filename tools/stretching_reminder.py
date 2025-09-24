@@ -24,7 +24,7 @@ from typing import List, Dict
 
 # 슬랙 웹훅 URL (환경변수에서 가져오기)
 SLACK_WEBHOOK_URL = os.getenv("STRETCHING_SLACK_WEBHOOK_URL")
-JINLOTTO_URL = "http://43.201.75.105:8000/"
+JINLOTTO_URL = "https://stretchinglotto.motiphysio.com/"
 
 def get_mz_stretching_messages() -> List[Dict]:
     """MZ 감성 스트레칭 메시지 리스트"""
